@@ -8,29 +8,29 @@ public class PlayerControls : MonoBehaviour
 {
     public GameObject[] playerUnits;
     public GameObject activeUnit;
-    public GameObject plumbob;
-    public float plumbobOffset = 5.0f;
+    [SerializeField] GameObject camParent;
 
     // Start is called before the first frame update
     void Start()
     {
-        playerUnits = GameObject.FindGameObjectsWithTag("playerunit"); // populate array of player units
+        playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
         activeUnit = playerUnits[0];
-        Debug.Log("Player units found:");
-        for (int i = 0; i < playerUnits.Length; i++)
-        {
-            Debug.Log(playerUnits[i].name);
-        }
-        Debug.Log("Unit Count:" + playerUnits.Length);
     }
 
     // Update is called once per frame
     void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             CycleActiveUnit();
         }
+
+        camParent = activeUnit.transform.Find("CamParent").gameObject;
+        transform.parent = camParent.transform;
+        gameObject.transform.position = camParent.transform.position;
+        gameObject.transform.rotation = camParent.transform.rotation;
+
     }
     void CycleActiveUnit()
     {
@@ -42,9 +42,7 @@ public class PlayerControls : MonoBehaviour
             index = 0;
         }
         activeUnit = playerUnits[index];
-        Debug.Log("Active unit: " + activeUnit.name + " // Index: " + index);
 
-        float plumbobHeight = plumbobOffset + activeUnit.transform.position.y;
-        plumbob.transform.position = new Vector3(activeUnit.transform.position.x, plumbobHeight, activeUnit.transform.position.z);
+
     }
 }
