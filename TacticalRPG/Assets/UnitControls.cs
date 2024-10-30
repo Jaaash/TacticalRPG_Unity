@@ -8,7 +8,6 @@ public class UnitControls : MonoBehaviour
     public Animator animator;
     public new GameObject camera;
     GameObject activeUnit;
-    GameObject camParent;
     PlayerControls playerControls;
 
 
@@ -16,7 +15,6 @@ public class UnitControls : MonoBehaviour
     void Start()
     {
         animator = GetComponent<Animator>();
-        camParent = GameObject.Find("camParent");
         playerControls = camera.GetComponent<PlayerControls>();
 
     }
