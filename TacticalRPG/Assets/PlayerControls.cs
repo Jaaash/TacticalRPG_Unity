@@ -9,8 +9,7 @@ public class PlayerControls : MonoBehaviour
 {
     public GameObject[] playerUnits;
     public GameObject activeUnit;
-    [SerializeField] GameObject camParent;
-    [SerializeField] CinemachineFreeLook freeLookCam;
+    GameObject camParent;
 
     // Start is called before the first frame update
     void Start()
@@ -32,8 +31,6 @@ public class PlayerControls : MonoBehaviour
         transform.parent = camParent.transform;
         gameObject.transform.position = camParent.transform.position;
         gameObject.transform.rotation = camParent.transform.rotation;
-        freeLookCam.Follow = activeUnit.transform;
-        freeLookCam.LookAt = activeUnit.transform;
 
     }
     void CycleActiveUnit()

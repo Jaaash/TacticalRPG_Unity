@@ -11,25 +11,22 @@ public class ThirdPersonMovement : MonoBehaviour
     public float baseSpeed = 8f;
     public float aimingSpeed = 3f;
     float moveSpeed;
-    public float gravity = 1f;
     public float jumpForce = 10f;
 
     public float camSpeedX = 50f;
     public float camSpeedY = 5f;
     public Transform orientation;
     float moveH, moveV, camH, camV;
-    public float xRotate, yRotate;
+    float xRotate, yRotate;
     bool aimButton;
 
     Vector3 moveDirection;
     Rigidbody body;
 
-    [SerializeField] PlayerControls playerControls;
-    [SerializeField] GameObject activeUnit;
-    [SerializeField] float camHeight;
-    [SerializeField] Transform camPivot;
-    [SerializeField] Transform camParent;
-    [SerializeField] CinemachineFreeLook freeLookCam;
+    PlayerControls playerControls;
+    GameObject activeUnit;
+    Transform camPivot;
+    Transform camParent;
     [SerializeField] GameObject model;
 
     void Start()
@@ -37,7 +34,6 @@ public class ThirdPersonMovement : MonoBehaviour
         body = GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
         playerControls = Camera.main.GetComponent<PlayerControls>();
-        freeLookCam = FindFirstObjectByType<CinemachineFreeLook>();
         camPivot = transform.Find("CamPivot");
         camParent = transform.Find("CamPivot/CamParent");
     }
@@ -45,6 +41,7 @@ public class ThirdPersonMovement : MonoBehaviour
     void Update()
     {
         activeUnit = playerControls.activeUnit;
+
         if (activeUnit != gameObject) { return; }
         else
         {
@@ -69,7 +66,7 @@ public class ThirdPersonMovement : MonoBehaviour
         moveH = Input.GetAxisRaw("Horizontal");
         moveV = Input.GetAxisRaw("Vertical");
 
-        //H = Y, V = X, this is intentional, not a mistake.
+        //H = Y, V = X, this is intentional, not a mistake. Horrible, I know.
         camH = Input.GetAxis("Mouse Y") * camSpeedY * Time.deltaTime;
         camV = Input.GetAxis("Mouse X") * camSpeedX * Time.deltaTime;
 
@@ -94,6 +91,7 @@ public class ThirdPersonMovement : MonoBehaviour
     void MoveCamera()
     {
         float modelFacing = model.transform.eulerAngles.y;
+
         Quaternion cameraFacing = new Quaternion (0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
         orientation.rotation = cameraFacing;
 
@@ -117,7 +115,7 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         else
         {
-            // How do we make the character stop snapping back to facing Z+ when releasing input?
+            model.transform.rotation = Quaternion.Euler(0, modelFacing, 0f);
         }
 
     }
