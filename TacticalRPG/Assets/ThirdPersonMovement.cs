@@ -8,8 +8,8 @@ using UnityEngine.Rendering;
 public class ThirdPersonMovement : MonoBehaviour
 {
 
-    public float baseSpeed = 10f;
-    public float aimingSpeed = 5f;
+    public float baseSpeed = 8f;
+    public float aimingSpeed = 3f;
     float moveSpeed;
     public float gravity = 1f;
     public float jumpForce = 10f;
@@ -79,10 +79,6 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         if (!aimButton)
         {
-            if (moveDirection != Vector3.zero)
-            {
-                model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(moveDirection), 0.1f);
-            }
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 70f, 0.2f);
             moveSpeed = baseSpeed;
         }
@@ -91,13 +87,13 @@ public class ThirdPersonMovement : MonoBehaviour
             moveSpeed = aimingSpeed;
         }
         moveDirection = (orientation.forward * moveV) + (orientation.right * moveH);
-        body.AddForce(moveSpeed * 10f * moveDirection);
+        body.AddForce(moveSpeed * 10f * moveDirection); 
 
 
     }
     void MoveCamera()
     {
-
+        float modelFacing = model.transform.eulerAngles.y;
         Quaternion cameraFacing = new Quaternion (0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
         orientation.rotation = cameraFacing;
 
@@ -111,10 +107,17 @@ public class ThirdPersonMovement : MonoBehaviour
         camPivot.localRotation = Quaternion.Euler(xRotate, 0f, 0f);
 
         if (aimButton)
-        {
+        { 
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f, 0.2f);
-
+        }
+        else if (moveDirection != Vector3.zero)
+        {
+            model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(moveDirection), 0.1f);
+        }
+        else
+        {
+            // How do we make the character stop snapping back to facing Z+ when releasing input?
         }
 
     }
