@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 355380600606595647}
   - component: {fileID: 3582143426952457224}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Weapon_Rifle_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96,7 +96,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5760589715669370937}
   - component: {fileID: 3900053830340762036}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Space_Soldier_A
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -152,7 +152,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 27066749789861426}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: orientation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -186,7 +186,8 @@ GameObject:
   - component: {fileID: 825903000095506582}
   - component: {fileID: 7736887091123243884}
   - component: {fileID: 8641050574421317676}
-  m_Layer: 0
+  - component: {fileID: 2984129301611568054}
+  m_Layer: 6
   m_Name: PlayerUnit
   m_TagString: playerunit
   m_Icon: {fileID: 0}
@@ -225,19 +226,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseSpeed: 8
   aimingSpeed: 3
-  gravity: 10
   jumpForce: 10
   camSpeedX: 70
   camSpeedY: 20
   orientation: {fileID: 27066749789861426}
-  xRotate: 0
-  yRotate: 0
-  playerControls: {fileID: 0}
-  activeUnit: {fileID: 0}
-  camHeight: 0
-  camPivot: {fileID: 0}
-  camParent: {fileID: 0}
-  freeLookCam: {fileID: 0}
   model: {fileID: 783049462566725322}
 --- !u!54 &7736887091123243884
 Rigidbody:
@@ -289,6 +281,25 @@ CapsuleCollider:
   m_Height: 2.17
   m_Direction: 1
   m_Center: {x: 0, y: 1.06, z: 0}
+--- !u!114 &2984129301611568054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563455035980456469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c21a6cba93ee0ed43a28b406f7556632, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  crosshair: {x: 0, y: 0, z: 0}
+  target: {fileID: 0}
+  accuracyRadius: 1
+  maxRange: 1000
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 192
 --- !u!1 &3020068369898284539
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,7 +309,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7273265087165296982}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: CamParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -329,7 +340,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1069834749418769654}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WeaponGrip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -361,7 +372,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 888336079030662069}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ShootFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -392,7 +403,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7966722032964322303}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: CamPivot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -425,7 +436,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8820211769296261082}
   - component: {fileID: 6591408861368226772}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Weapon_Rifle_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -479,7 +490,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4387084445266912652}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Weapon_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -512,7 +523,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3244012686503637300}
   - component: {fileID: 558400966318529612}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SK_Soldier_Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -597,7 +608,7 @@ GameObject:
   m_Component:
   - component: {fileID: 954777624542422056}
   - component: {fileID: 2110351890258488866}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SK_Soldier_Legs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -682,7 +693,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5300266487386455076}
   - component: {fileID: 7013949806563554188}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SK_Soldier_Torso
   m_TagString: Untagged
   m_Icon: {fileID: 0}

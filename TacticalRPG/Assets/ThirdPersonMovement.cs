@@ -24,6 +24,7 @@ public class ThirdPersonMovement : MonoBehaviour
     Rigidbody body;
 
     PlayerControls playerControls;
+    WeaponControls weaponControls;
     GameObject activeUnit;
     Transform camPivot;
     Transform camParent;
@@ -34,6 +35,7 @@ public class ThirdPersonMovement : MonoBehaviour
         body = GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Locked;
         playerControls = Camera.main.GetComponent<PlayerControls>();
+        weaponControls = GetComponent<WeaponControls>();
         camPivot = transform.Find("CamPivot");
         camParent = transform.Find("CamPivot/CamParent");
     }
@@ -82,6 +84,10 @@ public class ThirdPersonMovement : MonoBehaviour
         else
         {
             moveSpeed = aimingSpeed;
+            if (Input.GetAxisRaw("Fire1") == 1f)
+            {
+                weaponControls.FireWeapon();
+            }
         }
         moveDirection = (orientation.forward * moveV) + (orientation.right * moveH);
         body.AddForce(moveSpeed * 10f * moveDirection); 
