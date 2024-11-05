@@ -132,10 +132,10 @@ Animator:
   m_GameObject: {fileID: 783049462566725322}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: cfeff1d67ecb92245941b957cebd290e, type: 3}
-  m_Controller: {fileID: 9100000, guid: 4f177d72549cddd48aad42d447007b7a, type: 2}
+  m_Controller: {fileID: 9100000, guid: 5d748914d02d2ce4d89d3ba044ed20f0, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
@@ -186,7 +186,6 @@ GameObject:
   - component: {fileID: 825903000095506582}
   - component: {fileID: 7736887091123243884}
   - component: {fileID: 8641050574421317676}
-  - component: {fileID: 2984129301611568054}
   m_Layer: 6
   m_Name: PlayerUnit
   m_TagString: playerunit
@@ -224,12 +223,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4810b3d2f32e82f428f7f13457deb15a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseSpeed: 8
-  aimingSpeed: 3
-  vel: 0
+  baseSpeed: 40
+  aimingSpeed: 15
   actionPoints: 0
-  maxActionPoints: 50
-  movementCost: 0
+  startingAP: 0
+  tempAP: 0
+  maxActionPoints: 10
+  movementAPMult: 0.2
   camSpeedX: 70
   camSpeedY: 20
   orientation: {fileID: 27066749789861426}
@@ -241,6 +241,7 @@ MonoBehaviour:
   maxRange: 1000
   rounds: 1
   model: {fileID: 783049462566725322}
+  animSpeedMultiplier: 0.2
 --- !u!54 &7736887091123243884
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -291,29 +292,6 @@ CapsuleCollider:
   m_Height: 2.17
   m_Direction: 1
   m_Center: {x: 0, y: 1.06, z: 0}
---- !u!114 &2984129301611568054
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1563455035980456469}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c21a6cba93ee0ed43a28b406f7556632, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  crosshair: {x: 0, y: 0, z: 0}
-  target: {fileID: 0}
-  baseVariance: 1
-  accuracyRadius: 1
-  accuracyMultiplier: 0.05
-  maxVariance: 10
-  maxRange: 1000
-  rounds: 1
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 192
 --- !u!1 &3020068369898284539
 GameObject:
   m_ObjectHideFlags: 0

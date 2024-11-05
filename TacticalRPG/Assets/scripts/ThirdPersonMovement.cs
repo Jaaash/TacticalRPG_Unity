@@ -1,4 +1,4 @@
-using Cinemachine;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,8 +13,8 @@ public class ThirdPersonMovement : MonoBehaviour
     public float baseSpeed = 8f;
     public float aimingSpeed = 3f;
     float moveSpeed;
-    public float vel;
     public int actionPoints;
+    [SerializeField] int startingAP, tempAP;
     public int maxActionPoints = 10;
     public float movementAPMult = 0.2f;
 
@@ -23,8 +23,9 @@ public class ThirdPersonMovement : MonoBehaviour
     public Transform orientation;
     float moveH, moveV, camH, camV;
     float xRotate, yRotate;
-    bool aimButton;
+    bool fireButton, aimButton;
     bool moving;
+    bool spacebarUp, spacebarDown;
 
 
     [Header("Weapon Output")]
@@ -45,10 +46,13 @@ public class ThirdPersonMovement : MonoBehaviour
     Rigidbody body;
 
     PlayerControls playerControls;
+    Animator animator;
     GameObject activeUnit;
     Transform camPivot;
     Camera cam;
     [SerializeField] GameObject model;
+
+    public float animSpeedMultiplier = 0.1f;
 
 
     void Start()
@@ -56,6 +60,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
         cam = Camera.main;
         body = GetComponent<Rigidbody>();
+        animator = transform.GetChild(0).GetComponent<Animator>();
         playerControls = Camera.main.GetComponent<PlayerControls>();
         camPivot = transform.Find("CamPivot");
 
@@ -72,23 +77,20 @@ public class ThirdPersonMovement : MonoBehaviour
         else
         {
             GetInput();
-            MoveCamera();
 
+            SetAnimationParams();
         }
     }
 
     void FixedUpdate()
     {
         if (activeUnit != gameObject) { return; }
-        else //if (actionPoints > 0)
+        else
         {
             MovePlayer();
-            ApplyMovementLimit();
+            MoveCamera();
         }
-        //else { moveSpeed = 0f; }
-        
     }
-
 
     void GetInput()
     {
@@ -99,31 +101,30 @@ public class ThirdPersonMovement : MonoBehaviour
         camH = Input.GetAxis("Mouse Y") * camSpeedY * Time.deltaTime;
         camV = Input.GetAxis("Mouse X") * camSpeedX * Time.deltaTime;
 
+        fireButton = Input.GetKeyDown(KeyCode.Mouse0);
         aimButton = Input.GetKey(KeyCode.Mouse1);
+        spacebarUp = Input.GetKeyUp(KeyCode.Space);
+        spacebarDown = Input.GetKeyDown(KeyCode.Space);
     }
 
     void MovePlayer()
     {
         moveDirection = (orientation.forward * moveV) + (orientation.right * moveH);
-        body.AddForce(moveSpeed * 10f * moveDirection);
-        vel = Mathf.Max(Mathf.Abs(body.velocity.x), Mathf.Abs(body.velocity.z));
+        ApplyMovementLimit();
 
         if (!aimButton)
         {
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 70f, 0.2f);
             moveSpeed = baseSpeed;
         }
-
         else
         {
             moveSpeed = aimingSpeed;
-            if (Input.GetAxisRaw("Fire1") == 1f)
+            if (fireButton)
             {
                 FireWeapon();
             }
         }
-
-
 
     }
 
@@ -131,7 +132,7 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         float modelFacing = model.transform.eulerAngles.y;
 
-        Quaternion cameraFacing = new Quaternion (0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
+        Quaternion cameraFacing = new Quaternion(0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
         orientation.rotation = cameraFacing;
 
 
@@ -144,7 +145,7 @@ public class ThirdPersonMovement : MonoBehaviour
         camPivot.localRotation = Quaternion.Euler(xRotate, 0f, 0f);
 
         if (aimButton)
-        { 
+        {
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f, 0.2f);
         }
@@ -179,42 +180,54 @@ public class ThirdPersonMovement : MonoBehaviour
             target = null;
             Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
         }
- 
+
     }
 
     void ApplyMovementLimit()
     {
-        int endingAP = actionPoints;
-        if (Input.GetKeyDown(KeyCode.Space))   // PLACEHOLDER - Start unit's movement for turn
+        startingAP = actionPoints;
+        tempAP = actionPoints;
+
+        if (spacebarDown)   // PLACEHOLDER - Start unit's movement for turn
         {
             moving = true;
             startPosition = transform.position;
-            Debug.Log("Start movement");
         }
         if (moving)
         {
             endPosition = transform.position;
             accuracyRadius = AccuracyBloom(startPosition, endPosition);
-            endingAP = MovementCost(actionPoints, startPosition, endPosition);
+            tempAP = MovementCost(startingAP, startPosition, endPosition);
+            if (tempAP >= 0)
+            {
+                body.AddForce(moveSpeed * moveDirection);
+            }
+            else
+            {
+                body.AddForce(startPosition - body.transform.position, ForceMode.Force);
+                // Find a way to reduce 'bouncing' when reaching tempAP == -1?
+                // Potentially will cause problems when NavMesh pathfinding is implemented. May need to alter to push towards the last 'corner' in the path instead.
+            }
         }
-        if (Input.GetKeyUp(KeyCode.Space)) // PLACEHOLDER - End unit's movement for turn
+        if (spacebarUp) // PLACEHOLDER - End unit's movement for turn
         {
             moving = false;
-            actionPoints = endingAP;
-            Debug.Log("End Movement");
+            actionPoints = tempAP;
             Debug.DrawLine(startPosition, endPosition, Color.red);
         }
     }
 
-    public float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)   // TO DO: Tidy up these Arguments.
+    float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)
     {
         float result = (baseVariance / 100) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
 
         result = Mathf.Clamp(result, 0f, (maxVariance / 100));
         return result;
+
+        //TO DO - Recoil
     }
 
-    Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised) 
+    Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
     {
         float adjacent = Vector3.Magnitude(crosshair);
         float opposite = accuracyRadius;
@@ -231,17 +244,23 @@ public class ThirdPersonMovement : MonoBehaviour
         return randomised;
     }
 
-    public int MovementCost(int startingAP, Vector3 startPosition, Vector3 endPosition)
+    int MovementCost(int startingAP, Vector3 startPosition, Vector3 endPosition)
     {
-        int ap = startingAP;
         int apCost = Convert.ToInt32(Math.Round(DistanceMoved(startPosition, endPosition) * movementAPMult));
-        ap -= apCost;
-        return ap;
+        tempAP -= apCost;
+        return tempAP;
     }
 
     public float DistanceMoved(Vector3 startPosition, Vector3 endPosition)
     {
         Vector3 shortestPath = endPosition - startPosition;
         return Vector3.Magnitude(shortestPath);  // TO DO - Implement NavMesh + pathfinding around obstacles.
+    }
+
+    void SetAnimationParams()
+    {
+        animator.SetFloat("Speed", Vector3.Magnitude(body.velocity * animSpeedMultiplier));
+        animator.SetBool("Aiming", aimButton);
+        if (fireButton) { animator.SetTrigger("Shoot"); }
     }
 }
