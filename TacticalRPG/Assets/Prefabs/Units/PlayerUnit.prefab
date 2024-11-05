@@ -227,10 +227,12 @@ MonoBehaviour:
   baseSpeed: 8
   aimingSpeed: 3
   jumpForce: 10
+  vel: 0
   camSpeedX: 70
   camSpeedY: 20
   orientation: {fileID: 27066749789861426}
   model: {fileID: 783049462566725322}
+  deltaInput: 0
 --- !u!54 &7736887091123243884
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -295,8 +297,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   crosshair: {x: 0, y: 0, z: 0}
   target: {fileID: 0}
+  baseVariance: 1
   accuracyRadius: 1
+  accuracyMultiplier: 0.05
+  maxVariance: 10
   maxRange: 1000
+  rounds: 1
   layerMask:
     serializedVersion: 2
     m_Bits: 192

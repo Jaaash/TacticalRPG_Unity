@@ -21,7 +21,7 @@ public class crosshair : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        radius = Camera.main.GetComponent<PlayerControls>().activeUnit.GetComponent<WeaponControls>().accuracyRadius;
+        radius = Camera.main.GetComponent<PlayerControls>().activeUnit.GetComponent<ThirdPersonMovement>().accuracyRadius;
         AdjustCrosshair(xPos.transform, defaultXPos,-radius , 0);
         AdjustCrosshair(xNeg.transform, defaultXNeg, radius , 0);
 

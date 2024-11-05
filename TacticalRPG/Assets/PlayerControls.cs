@@ -5,13 +5,13 @@ using UnityEngine;
 
 public class PlayerControls : MonoBehaviour
 
-   
+   // TO DO: Add top-down interface
 {
     public GameObject[] playerUnits;
     public GameObject activeUnit;
     GameObject camParent;
 
-    // Start is called before the first frame update
+
     void Start()
     {
         playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
@@ -32,6 +32,11 @@ public class PlayerControls : MonoBehaviour
         gameObject.transform.position = camParent.transform.position;
         gameObject.transform.rotation = camParent.transform.rotation;
 
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            NewTurn();
+        }
+
     }
     void CycleActiveUnit()
     {
@@ -45,5 +50,12 @@ public class PlayerControls : MonoBehaviour
         activeUnit = playerUnits[index];
 
 
+    }
+    void NewTurn()
+    {
+        foreach (GameObject unit in playerUnits) 
+        {
+            unit.GetComponent<ThirdPersonMovement>().actionPoints = unit.GetComponent<ThirdPersonMovement>().maxActionPoints;
+        }
     }
 }
