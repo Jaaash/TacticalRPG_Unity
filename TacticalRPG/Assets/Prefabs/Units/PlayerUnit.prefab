@@ -226,13 +226,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseSpeed: 8
   aimingSpeed: 3
-  jumpForce: 10
   vel: 0
+  actionPoints: 0
+  maxActionPoints: 50
+  movementCost: 0
   camSpeedX: 70
   camSpeedY: 20
   orientation: {fileID: 27066749789861426}
+  target: {fileID: 0}
+  baseVariance: 1
+  accuracyRadius: 0
+  accuracyMultiplier: 0.2
+  maxVariance: 15
+  maxRange: 1000
+  rounds: 1
   model: {fileID: 783049462566725322}
-  deltaInput: 0
 --- !u!54 &7736887091123243884
 Rigidbody:
   m_ObjectHideFlags: 0
