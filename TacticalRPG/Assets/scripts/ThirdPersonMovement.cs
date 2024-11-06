@@ -32,7 +32,7 @@ public class ThirdPersonMovement : MonoBehaviour
     float moveH, moveV, camH, camV;
     float xRotate, yRotate;
     bool fireButton, aimButton;
-    bool moving;
+    public bool moving;
     bool backspaceDown, spacebarDown;
 
 
@@ -52,7 +52,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public float maxRange = 1000f;
     public int rounds = 5;
     public int shotAPCost = 5;
-    public int damage = 100;
+    public int damage = 6;
 
     Vector3 moveDirection;
     Vector3 startPosition, endPosition;
@@ -60,7 +60,8 @@ public class ThirdPersonMovement : MonoBehaviour
 
     PlayerControls playerControls;
     new CapsuleCollider collider;
-    Animator animator;
+    [SerializeField] Animator modelAnimator;
+    [SerializeField] Animator hitboxAnimator;
     GameObject activeUnit;
     Transform camPivot;
     Camera cam;
@@ -74,7 +75,6 @@ public class ThirdPersonMovement : MonoBehaviour
 
         cam = Camera.main;
         body = GetComponent<Rigidbody>();
-        animator = transform.GetChild(0).GetComponent<Animator>();
         playerControls = Camera.main.GetComponent<PlayerControls>();
         collider = transform.GetComponent<CapsuleCollider>();
         camPivot = transform.Find("CamPivot");
@@ -89,7 +89,8 @@ public class ThirdPersonMovement : MonoBehaviour
         activeUnit = playerControls.activeUnit;
         if (health < 1)
         {
-            animator.SetBool("Dead", true);
+            modelAnimator.SetBool("Dead", true);
+            hitboxAnimator.SetBool("Dead", true);
         }
 
         if (activeUnit != gameObject) { return; }
@@ -98,7 +99,7 @@ public class ThirdPersonMovement : MonoBehaviour
             GetInput();
             SetAnimationParams();
         }
-
+        hitboxAnimator.gameObject.transform.position = modelAnimator.gameObject.transform.position;
     }
 
     void FixedUpdate()
@@ -152,9 +153,8 @@ public class ThirdPersonMovement : MonoBehaviour
         else
         {
             moveSpeed = aimingSpeed;
-            if (fireButton)
+            if (fireButton && !moving)
             {
-                moving = false;
                 actionPoints = tempAP;
                 FireWeapon();
             }
@@ -210,10 +210,19 @@ public class ThirdPersonMovement : MonoBehaviour
             if (Physics.Raycast(weaponRaycast, out rayCollision, maxRange, layerMask))
             {
                 target = rayCollision.transform.gameObject;
-                target.GetComponent<ThirdPersonMovement>().health -= damage;
+                if (target.tag == "critbox")
+                {
+                    target.GetComponent<ThirdPersonMovement>().health -= damage * 2;
+                    Debug.Log(target + " was CRIT");
+                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
+                }
+                if (target.tag == "hitbox")
+                {
+                    target.GetComponent<ThirdPersonMovement>().health -= damage;
+                    Debug.Log(target + " was hiy");
+                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
+                }
 
-                Debug.Log(target + " was hit");
-                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
             }
             else
             {
@@ -252,7 +261,7 @@ public class ThirdPersonMovement : MonoBehaviour
                 // Potentially will cause problems when NavMesh pathfinding is implemented. Alter to push towards the last 'corner' in the path instead?
             }
         }
-        if (backspaceDown && moving) // PLACEHOLDER - End unit's movement for turn
+        if (backspaceDown || !moving) // PLACEHOLDER - End unit's movement for turn
         {
             moving = false;
             actionPoints = tempAP;
@@ -301,8 +310,12 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void SetAnimationParams()
     {
-        animator.SetFloat("Speed", Vector3.Magnitude(body.velocity * animSpeedMultiplier));
-        animator.SetBool("Aiming", aimButton);
-        if (fireButton) { animator.SetTrigger("Shoot"); }
+        modelAnimator.SetFloat("Speed", Vector3.Magnitude(body.velocity * animSpeedMultiplier));
+        modelAnimator.SetBool("Aiming", aimButton);
+        if (fireButton) { modelAnimator.SetTrigger("Shoot"); }
+
+        hitboxAnimator.SetFloat("Speed", Vector3.Magnitude(body.velocity * animSpeedMultiplier));
+        hitboxAnimator.SetBool("Aiming", aimButton);
+        if (fireButton) { hitboxAnimator.SetTrigger("Shoot"); }
     }
 }

@@ -7,6 +7,8 @@ TagManager:
   - playerunit
   - ground
   - enemyunit
+  - critbox
+  - hitbox
   layers:
   - Default
   - TransparentFX
