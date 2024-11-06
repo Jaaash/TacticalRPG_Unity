@@ -6,6 +6,7 @@ TagManager:
   tags:
   - playerunit
   - ground
+  - enemyunit
   layers:
   - Default
   - TransparentFX

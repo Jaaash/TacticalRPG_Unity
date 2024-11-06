@@ -223,10 +223,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4810b3d2f32e82f428f7f13457deb15a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 10
   baseSpeed: 40
   aimingSpeed: 15
   actionPoints: 0
-  startingAP: 0
   tempAP: 0
   maxActionPoints: 10
   movementAPMult: 0.2
@@ -234,12 +234,19 @@ MonoBehaviour:
   camSpeedY: 20
   orientation: {fileID: 27066749789861426}
   target: {fileID: 0}
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 192
   baseVariance: 1
   accuracyRadius: 0
-  accuracyMultiplier: 0.2
+  accuracyMultiplier: 0.15
   maxVariance: 15
+  startingVariance: 0
+  varianceReductionRate: 5
   maxRange: 1000
   rounds: 1
+  shotAPCost: 5
+  damage: 100
   model: {fileID: 783049462566725322}
   animSpeedMultiplier: 0.2
 --- !u!54 &7736887091123243884
@@ -557,7 +564,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 568d24ae65d697a4089c4a486b0cc0bf, type: 2}
+  - {fileID: 2100000, guid: e0244693d40429a4eb63b69972a21dcd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -642,7 +649,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ceaa229ea18542d4fa2b0e4414c91b67, type: 2}
+  - {fileID: 2100000, guid: a699ee56e43a36a4a93d521b97cc7cd7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -727,7 +734,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eda028106e6673545a9aeab640c50688, type: 2}
+  - {fileID: 2100000, guid: 3e9beee87956dd6409048c37003411d6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

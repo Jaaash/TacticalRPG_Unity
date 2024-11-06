@@ -6,18 +6,26 @@ using System.Diagnostics.Tracing;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 public class ThirdPersonMovement : MonoBehaviour
 {
+    [Header("Health/Armour")]
+    public int health = 10;
 
+    [Header("Movement")]
     public float baseSpeed = 8f;
     public float aimingSpeed = 3f;
     float moveSpeed;
+    RaycastHit rayHitFloor;
+
+    [Header("Action Points")]
     public int actionPoints;
-    [SerializeField] int startingAP, tempAP;
+    public int tempAP;
     public int maxActionPoints = 10;
     public float movementAPMult = 0.2f;
 
+    [Header("Camera")]
     [SerializeField] float camSpeedX = 50f;
     [SerializeField] float camSpeedY = 5f;
     public Transform orientation;
@@ -25,27 +33,33 @@ public class ThirdPersonMovement : MonoBehaviour
     float xRotate, yRotate;
     bool fireButton, aimButton;
     bool moving;
-    bool spacebarUp, spacebarDown;
+    bool backspaceDown, spacebarDown;
 
 
     [Header("Weapon Output")]
     public Ray weaponRaycast;
     public RaycastHit rayCollision;
     public GameObject target;
-    LayerMask layerMask;
+    public LayerMask layerMask;
+
     [Header("Weapon Stats")]
     public float baseVariance = 1f;
     public float accuracyRadius;
-    public float accuracyMultiplier = 0.2f;
+    public float accuracyMultiplier = 0.15f;
     public float maxVariance = 2f;
+    public float startingVariance;
+    public float varianceReductionRate;
     public float maxRange = 1000f;
-    public int rounds = 1;
+    public int rounds = 5;
+    public int shotAPCost = 5;
+    public int damage = 100;
 
     Vector3 moveDirection;
     Vector3 startPosition, endPosition;
     Rigidbody body;
 
     PlayerControls playerControls;
+    new CapsuleCollider collider;
     Animator animator;
     GameObject activeUnit;
     Transform camPivot;
@@ -62,6 +76,7 @@ public class ThirdPersonMovement : MonoBehaviour
         body = GetComponent<Rigidbody>();
         animator = transform.GetChild(0).GetComponent<Animator>();
         playerControls = Camera.main.GetComponent<PlayerControls>();
+        collider = transform.GetComponent<CapsuleCollider>();
         camPivot = transform.Find("CamPivot");
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -72,14 +87,18 @@ public class ThirdPersonMovement : MonoBehaviour
     void Update()
     {
         activeUnit = playerControls.activeUnit;
+        if (health < 1)
+        {
+            animator.SetBool("Dead", true);
+        }
 
         if (activeUnit != gameObject) { return; }
         else
         {
             GetInput();
-
             SetAnimationParams();
         }
+
     }
 
     void FixedUpdate()
@@ -92,7 +111,8 @@ public class ThirdPersonMovement : MonoBehaviour
         }
     }
 
-    void GetInput()
+
+    void GetInput()    // TO DO - Normalise WASD input, but not Analog stick input.
     {
         moveH = Input.GetAxis("Horizontal");
         moveV = Input.GetAxis("Vertical");
@@ -103,14 +123,26 @@ public class ThirdPersonMovement : MonoBehaviour
 
         fireButton = Input.GetKeyDown(KeyCode.Mouse0);
         aimButton = Input.GetKey(KeyCode.Mouse1);
-        spacebarUp = Input.GetKeyUp(KeyCode.Space);
+        backspaceDown = Input.GetKeyDown(KeyCode.Backspace);
         spacebarDown = Input.GetKeyDown(KeyCode.Space);
     }
 
     void MovePlayer()
     {
-        moveDirection = (orientation.forward * moveV) + (orientation.right * moveH);
-        ApplyMovementLimit();
+        Ray surfaceDetect = new Ray(new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z), Vector3.down);
+
+        Vector3 floorNormal = Vector3.up;
+
+        if (Physics.Raycast(surfaceDetect, out rayHitFloor, collider.height * 0.55f))
+        {
+            floorNormal = rayHitFloor.normal;
+        }
+
+        moveDirection = Vector3.ProjectOnPlane((orientation.forward * moveV) + (orientation.right * moveH), floorNormal);
+        // moveDirection = Vector3.Normalize(moveDirection);
+        // Revisit when separate keyboard and gamepad control schemes have been implemented.
+
+        ApplyMovementEffects();
 
         if (!aimButton)
         {
@@ -122,6 +154,8 @@ public class ThirdPersonMovement : MonoBehaviour
             moveSpeed = aimingSpeed;
             if (fireButton)
             {
+                moving = false;
+                actionPoints = tempAP;
                 FireWeapon();
             }
         }
@@ -151,7 +185,9 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         else if (moveDirection != Vector3.zero)
         {
-            model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(moveDirection), 0.1f);
+            Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
+            model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
+
         }
         else
         {
@@ -162,33 +198,40 @@ public class ThirdPersonMovement : MonoBehaviour
 
     public void FireWeapon()
     {
-        float randX = cam.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-        float randY = cam.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-        float randZ = cam.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-
-        Vector3 rayForward = new Vector3(randX, randY, randZ);
-        weaponRaycast = new Ray(camPivot.transform.position, CirulariseAccuracyBloom(cam.transform.forward, rayForward));
-
-        if (Physics.Raycast(weaponRaycast, out rayCollision, maxRange, layerMask))
+        if (shotAPCost <= actionPoints)
         {
-            target = rayCollision.transform.gameObject;
-            Debug.Log(target + " was hit");
-            Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
-        }
-        else
-        {
-            target = null;
-            Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
-        }
+            float randX = cam.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
+            float randY = cam.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
+            float randZ = cam.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
 
+            Vector3 rayForward = new Vector3(randX, randY, randZ);
+            weaponRaycast = new Ray(camPivot.transform.position, CirulariseAccuracyBloom(cam.transform.forward, rayForward));
+
+            if (Physics.Raycast(weaponRaycast, out rayCollision, maxRange, layerMask))
+            {
+                target = rayCollision.transform.gameObject;
+                target.GetComponent<ThirdPersonMovement>().health -= damage;
+
+                Debug.Log(target + " was hit");
+                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
+            }
+            else
+            {
+                target = null;
+                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
+            }
+
+            actionPoints -= shotAPCost;
+        }
+        else { Debug.Log("Not enough AP!"); }
     }
 
-    void ApplyMovementLimit()
+    void ApplyMovementEffects()
     {
-        startingAP = actionPoints;
         tempAP = actionPoints;
+        accuracyRadius = startingVariance;
 
-        if (spacebarDown)   // PLACEHOLDER - Start unit's movement for turn
+        if (spacebarDown && !moving)   // PLACEHOLDER - Start unit's movement for turn
         {
             moving = true;
             startPosition = transform.position;
@@ -197,31 +240,31 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             endPosition = transform.position;
             accuracyRadius = AccuracyBloom(startPosition, endPosition);
-            tempAP = MovementCost(startingAP, startPosition, endPosition);
+            tempAP = MovementCost(startPosition, endPosition);
+
             if (tempAP >= 0)
             {
-                body.AddForce(moveSpeed * moveDirection);
+                body.AddForce(moveSpeed * Vector3.ProjectOnPlane(moveDirection, rayHitFloor.normal));
             }
             else
             {
-                body.AddForce(startPosition - body.transform.position, ForceMode.Force);
-                // Find a way to reduce 'bouncing' when reaching tempAP == -1?
-                // Potentially will cause problems when NavMesh pathfinding is implemented. May need to alter to push towards the last 'corner' in the path instead.
+                body.AddForce(startPosition - body.transform.position, ForceMode.Force); // towards startingPosition
+                // Potentially will cause problems when NavMesh pathfinding is implemented. Alter to push towards the last 'corner' in the path instead?
             }
         }
-        if (spacebarUp) // PLACEHOLDER - End unit's movement for turn
+        if (backspaceDown && moving) // PLACEHOLDER - End unit's movement for turn
         {
             moving = false;
             actionPoints = tempAP;
-            Debug.DrawLine(startPosition, endPosition, Color.red);
+            startingVariance = accuracyRadius;
         }
     }
 
     float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)
     {
-        float result = (baseVariance / 100) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
+        float result = (accuracyRadius / 100) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
 
-        result = Mathf.Clamp(result, 0f, (maxVariance / 100));
+        result = Mathf.Clamp(result, (startingVariance), (maxVariance / 100));
         return result;
 
         //TO DO - Recoil
@@ -239,12 +282,11 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             float difference = angle - tan;
             randomised = crosshair;
-            Debug.Log("angle adjusted: " + angle + " / " + tan);
         }
         return randomised;
     }
 
-    int MovementCost(int startingAP, Vector3 startPosition, Vector3 endPosition)
+    int MovementCost(Vector3 startPosition, Vector3 endPosition)
     {
         int apCost = Convert.ToInt32(Math.Round(DistanceMoved(startPosition, endPosition) * movementAPMult));
         tempAP -= apCost;

@@ -54,7 +54,10 @@ public class PlayerControls : MonoBehaviour
     {
         foreach (GameObject unit in playerUnits) 
         {
-            unit.GetComponent<ThirdPersonMovement>().actionPoints = unit.GetComponent<ThirdPersonMovement>().maxActionPoints;
+            ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
+            unitControls.actionPoints = unitControls.maxActionPoints;
+            unitControls.accuracyRadius -= unitControls.varianceReductionRate / 100;
+            unitControls.accuracyRadius = Mathf.Clamp(unitControls.accuracyRadius, unitControls.baseVariance / 100, unitControls.maxVariance / 100);
         }
     }
 }
