@@ -207,27 +207,34 @@ public class ThirdPersonMovement : MonoBehaviour
             Vector3 rayForward = new Vector3(randX, randY, randZ);
             weaponRaycast = new Ray(camPivot.transform.position, CirulariseAccuracyBloom(cam.transform.forward, rayForward));
 
+            Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
+
             if (Physics.Raycast(weaponRaycast, out rayCollision, maxRange, layerMask))
             {
-                target = rayCollision.transform.gameObject;
+                target = rayCollision.collider.gameObject;
+
                 if (target.tag == "critbox")
                 {
-                    target.GetComponent<ThirdPersonMovement>().health -= damage * 2;
-                    Debug.Log(target + " was CRIT");
+                    Debug.Log(target.transform.root + " was CRIT");
                     Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
+                    target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage * 2;
                 }
-                if (target.tag == "hitbox")
+                else if (target.tag == "hitbox")
                 {
-                    target.GetComponent<ThirdPersonMovement>().health -= damage;
-                    Debug.Log(target + " was hiy");
-                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
+                    Debug.Log(target.transform.root + " was hit");
+                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
+                    target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage;
+                }
+                else
+                {
+                    Debug.Log(target.gameObject + " was hit, but has incorrect tag. Tag is: " + target.tag);
                 }
 
             }
             else
             {
                 target = null;
-                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
+                Debug.Log("Miss!");
             }
 
             actionPoints -= shotAPCost;
