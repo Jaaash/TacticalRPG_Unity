@@ -8,12 +8,12 @@ public class ActiveUnitIndicator : MonoBehaviour
     [SerializeField] new GameObject camera;
     [SerializeField] float yOffset = 3.0f;
     GameObject activeUnit;
-    PlayerControls playerControls;
+    PlayerGUI playerControls;
 
     // Start is called before the first frame update
     void Start()
     {
-        playerControls = camera.GetComponent<PlayerControls>();
+        playerControls = camera.GetComponent<PlayerGUI>();
     }
 
     // Update is called once per frame

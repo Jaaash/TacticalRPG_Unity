@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 10
+  maxHealth: 10
   baseSpeed: 50
   aimingSpeed: 20
   actionPoints: 0
@@ -239,9 +240,9 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 384
-  baseVariance: 1
-  accuracyRadius: 0
-  accuracyMultiplier: 0.15
+  baseVariance: 0.01
+  accuracyRadius: 1
+  accuracyMultiplier: 0.05
   maxVariance: 15
   startingVariance: 0
   varianceReductionRate: 10

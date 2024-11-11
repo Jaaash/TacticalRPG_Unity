@@ -12,6 +12,7 @@ public class ThirdPersonMovement : MonoBehaviour
 {
     [Header("Health/Armour")]
     public int health = 10;
+    public int maxHealth = 10;
 
     [Header("Movement")]
     public float baseSpeed = 8f;
@@ -29,12 +30,13 @@ public class ThirdPersonMovement : MonoBehaviour
     [SerializeField] float camSpeedX = 50f;
     [SerializeField] float camSpeedY = 5f;
     public Transform orientation;
-    float moveH, moveV, camH, camV;
-    float xRotate, yRotate;
+
+    [Header("Input")]
     bool fireButton, aimButton;
     public bool moving;
-    bool backspaceDown, spacebarDown;
-
+    float moveH, moveV, camH, camV;
+    float xRotate, yRotate;
+    bool spacebarDown, backspaceDown;
 
     [Header("Weapon Output")]
     public Ray weaponRaycast;
@@ -58,7 +60,7 @@ public class ThirdPersonMovement : MonoBehaviour
     Vector3 startPosition, endPosition;
     Rigidbody body;
 
-    PlayerControls playerControls;
+    PlayerGUI playerControls;
     new CapsuleCollider collider;
     [SerializeField] Animator modelAnimator;
     [SerializeField] Animator hitboxAnimator;
@@ -75,30 +77,35 @@ public class ThirdPersonMovement : MonoBehaviour
 
         cam = Camera.main;
         body = GetComponent<Rigidbody>();
-        playerControls = Camera.main.GetComponent<PlayerControls>();
+        playerControls = Camera.main.GetComponent<PlayerGUI>();
         collider = transform.GetComponent<CapsuleCollider>();
         camPivot = transform.Find("CamPivot");
 
         Cursor.lockState = CursorLockMode.Locked;
         moving = false;
         actionPoints = maxActionPoints;
+        accuracyRadius = baseVariance;
+        startingVariance = baseVariance;
     }
 
     void Update()
     {
-        activeUnit = playerControls.activeUnit;
+
         if (health < 1)
         {
             modelAnimator.SetBool("Dead", true);
             hitboxAnimator.SetBool("Dead", true);
+            StartCoroutine(UnitDead());
         }
 
+        activeUnit = playerControls.activeUnit;
         if (activeUnit != gameObject) { return; }
         else
         {
             GetInput();
             SetAnimationParams();
         }
+
         hitboxAnimator.gameObject.transform.position = modelAnimator.gameObject.transform.position;
     }
 
@@ -107,6 +114,7 @@ public class ThirdPersonMovement : MonoBehaviour
         if (activeUnit != gameObject) { return; }
         else
         {
+            GetInput();
             MovePlayer();
             MoveCamera();
         }
@@ -140,8 +148,8 @@ public class ThirdPersonMovement : MonoBehaviour
         }
 
         moveDirection = Vector3.ProjectOnPlane((orientation.forward * moveV) + (orientation.right * moveH), floorNormal);
-        // moveDirection = Vector3.Normalize(moveDirection);
-        // Revisit when separate keyboard and gamepad control schemes have been implemented.
+        moveDirection = Vector3.Normalize(moveDirection);
+        // Analog input not properly supported currently, revisit in future.
 
         ApplyMovementEffects();
 
@@ -200,6 +208,8 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         if (shotAPCost <= actionPoints)
         {
+            // These lines describe a square around the centre of the camera view.
+            // CirculariseAccuracyBloom() is used to then 'smooth the corners' of this square into a circle instead.
             float randX = cam.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
             float randY = cam.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
             float randZ = cam.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
@@ -213,21 +223,17 @@ public class ThirdPersonMovement : MonoBehaviour
             {
                 target = rayCollision.collider.gameObject;
 
-                if (target.tag == "critbox")
+                if (target.CompareTag("critbox"))
                 {
                     Debug.Log(target.transform.root + " was CRIT");
                     Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
                     target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage * 2;
                 }
-                else if (target.tag == "hitbox")
+                else if (target.CompareTag("hitbox"))
                 {
                     Debug.Log(target.transform.root + " was hit");
                     Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
                     target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage;
-                }
-                else
-                {
-                    Debug.Log(target.gameObject + " was hit, but has incorrect tag. Tag is: " + target.tag);
                 }
 
             }
@@ -278,7 +284,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
     float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)
     {
-        float result = (accuracyRadius / 100) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
+        float result = (accuracyRadius) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
 
         result = Mathf.Clamp(result, (startingVariance), (maxVariance / 100));
         return result;
@@ -287,6 +293,7 @@ public class ThirdPersonMovement : MonoBehaviour
     }
 
     Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
+    //Use TAN trigonometric function to calculate a circle around crosshair with radius of accuracyRadius, and re-target any shots which would fall outside that circle.
     {
         float adjacent = Vector3.Magnitude(crosshair);
         float opposite = accuracyRadius;
@@ -296,7 +303,6 @@ public class ThirdPersonMovement : MonoBehaviour
 
         if (angle > tan)
         {
-            float difference = angle - tan;
             randomised = crosshair;
         }
         return randomised;
@@ -324,5 +330,11 @@ public class ThirdPersonMovement : MonoBehaviour
         hitboxAnimator.SetFloat("Speed", Vector3.Magnitude(body.velocity * animSpeedMultiplier));
         hitboxAnimator.SetBool("Aiming", aimButton);
         if (fireButton) { hitboxAnimator.SetTrigger("Shoot"); }
+
+    }
+    IEnumerator UnitDead()
+    {
+        yield return new WaitForSeconds(5);
+        gameObject.SetActive(false);
     }
 }
