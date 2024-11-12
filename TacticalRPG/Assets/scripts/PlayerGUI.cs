@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Cinemachine;
 
 public class PlayerGUI : MonoBehaviour
 
@@ -14,37 +15,31 @@ public class PlayerGUI : MonoBehaviour
     public GameObject activeUnit;
     public Canvas thirdPersonUI;
     public Canvas topDownUI;
-    GameObject camParent;
     [SerializeField] Button endTurn;
 
 
     void Start()
     {
         cam = Camera.main;
-        playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
-        enemyUnits = GameObject.FindGameObjectsWithTag("enemyunit");
         endTurn.onClick.AddListener(EndPlayerTurn);
+        GetAllActiveUnits();
     }
 
     // Update is called once per frame
     void Update()
     {
-        playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
-        enemyUnits = GameObject.FindGameObjectsWithTag("enemyunit");
+
         if (activeUnit == null)
         {
-            Cursor.lockState = CursorLockMode.Confined;
-            cam.transform.parent = topDownViewpoint.transform;
-            cam.transform.SetPositionAndRotation(topDownViewpoint.transform.position, topDownViewpoint.transform.rotation);
-            topDownUI.enabled = true;
-            thirdPersonUI.enabled = false;
+            SetTopDownCam(true);
 
             if (Input.GetMouseButtonDown(0))
             {
-                RaycastHit hit;
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit))
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit))
                 {
+                    Debug.DrawRay(cam.transform.position, hit.point, Color.red, 1f);
+
                     if (hit.collider.transform.root.CompareTag("playerunit"))
                     {
                         activeUnit = hit.collider.transform.root.gameObject;
@@ -56,18 +51,17 @@ public class PlayerGUI : MonoBehaviour
         }
         else
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            topDownUI.enabled = false;
-            thirdPersonUI.enabled = true;
+            SetTopDownCam(false);
         }
 
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             CycleActiveUnit();
         }
-        if (Input.GetKeyDown(KeyCode.Return)) { activeUnit = null; } // Return to Top-Down view
-
-        
+        if (Input.GetKeyDown(KeyCode.Return)) // Return to Top-Down view
+        { 
+            activeUnit = null;
+        } 
 
         if (enemyUnits.Length == 0)
         {
@@ -81,7 +75,11 @@ public class PlayerGUI : MonoBehaviour
     void CycleActiveUnit()
     {
 
-        if (activeUnit == null) { activeUnit = playerUnits[0]; }
+        if (activeUnit == null) 
+        {
+            activeUnit = playerUnits[0];
+            AttachCamToActiveUnit();
+        }
         else
         {
             int index = System.Array.IndexOf(playerUnits, activeUnit);
@@ -96,10 +94,9 @@ public class PlayerGUI : MonoBehaviour
     }
     void AttachCamToActiveUnit() 
     { 
-        camParent = activeUnit.transform.Find("CamPivot/CamParent").gameObject;
+        GameObject camParent = activeUnit.transform.Find("CamPivot/CamParent").gameObject;
         transform.parent = camParent.transform;
         cam.transform.SetPositionAndRotation( camParent.transform.position, camParent.transform.rotation );
-
     }
     void EndPlayerTurn()
     {
@@ -108,8 +105,11 @@ public class PlayerGUI : MonoBehaviour
         {
             ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
             unitControls.actionPoints = unitControls.maxActionPoints;
-            unitControls.startingVariance -= unitControls.varianceReductionRate / 100;
-            unitControls.startingVariance = Mathf.Clamp(unitControls.startingVariance, unitControls.baseVariance / 100, unitControls.maxVariance /100);
+            unitControls.startingVariance -= unitControls.varianceReductionRate;
+            if (unitControls.startingVariance < unitControls.baseVariance)
+            {
+                unitControls.startingVariance = unitControls.baseVariance;
+            }
         }
         EnemyTurn();
     }
@@ -147,6 +147,30 @@ public class PlayerGUI : MonoBehaviour
     {
         if (playerWin)  { Debug.Log("Area secure. Mission Complete."); }
         else            { Debug.Log("Squad eliminated. Mission Failed.");  }
+    }
+
+    void SetTopDownCam(bool topdown)
+    {
+        topDownUI.enabled = topdown;
+        thirdPersonUI.enabled = !topdown;
+
+        if (topdown)
+        {
+            Cursor.lockState = CursorLockMode.Confined;
+            cam.transform.parent = topDownViewpoint.transform;
+            cam.transform.SetPositionAndRotation(topDownViewpoint.transform.position, cam.transform.rotation);
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            AttachCamToActiveUnit();
+        }
+    }
+
+    public void GetAllActiveUnits()
+    {
+        playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
+        enemyUnits = GameObject.FindGameObjectsWithTag("enemyunit");
     }
 
 }

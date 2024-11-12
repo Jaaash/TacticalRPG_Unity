@@ -243,9 +243,9 @@ MonoBehaviour:
   baseVariance: 0.01
   accuracyRadius: 1
   accuracyMultiplier: 0.05
-  maxVariance: 15
+  maxVariance: 0.15
   startingVariance: 0
-  varianceReductionRate: 10
+  varianceReductionRate: 0.1
   maxRange: 1000
   rounds: 1
   shotAPCost: 5

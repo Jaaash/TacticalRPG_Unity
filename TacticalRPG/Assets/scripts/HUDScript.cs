@@ -7,6 +7,7 @@ public class HUDScript : MonoBehaviour
 {
 
     [SerializeField] TextMeshProUGUI apDisplay;
+    [SerializeField] TextMeshProUGUI hpDisplay;
     [SerializeField] TextMeshProUGUI movingIndicator;
     [SerializeField] GameObject activeUnit;
     [SerializeField] ThirdPersonMovement unitControls;
@@ -26,6 +27,7 @@ public class HUDScript : MonoBehaviour
         {
             unitControls = activeUnit.GetComponent<ThirdPersonMovement>();
             apDisplay.text = "AP: " + unitControls.tempAP + " / " + unitControls.maxActionPoints;
+            hpDisplay.text = "HP: " + unitControls.health + " / " + unitControls.maxHealth;
 
             if (unitControls.moving)
             { movingIndicator.gameObject.SetActive(true); }

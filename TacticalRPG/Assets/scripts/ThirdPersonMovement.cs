@@ -45,7 +45,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public LayerMask layerMask;
 
     [Header("Weapon Stats")]
-    public float baseVariance = 1f;
+    public float baseVariance = 0.01f;
     public float accuracyRadius;
     public float accuracyMultiplier = 0.15f;
     public float maxVariance = 2f;
@@ -284,9 +284,9 @@ public class ThirdPersonMovement : MonoBehaviour
 
     float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)
     {
-        float result = (accuracyRadius) + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
+        float result = accuracyRadius + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
 
-        result = Mathf.Clamp(result, (startingVariance), (maxVariance / 100));
+        result = Mathf.Clamp(result, (startingVariance), (maxVariance));
         return result;
 
         //TO DO - Recoil
@@ -336,5 +336,6 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(5);
         gameObject.SetActive(false);
+        playerControls.GetAllActiveUnits();
     }
 }

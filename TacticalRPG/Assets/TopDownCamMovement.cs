@@ -1,44 +1,85 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TopDownCamMovement : MonoBehaviour
 {
-
-    float moveH, moveV, camH, camZoom;
-    float xRotate, yRotate;
     [SerializeField] float moveSpeed = 10f;
-    [SerializeField] float rotateSpeedY = 5f;
-    CharacterController controller;
+    [SerializeField] float rotateSpeed = 5f;
+    [SerializeField] float maxZoom = 15f;
+    [SerializeField] float minZoom = 1f;
+    [SerializeField] GameObject camParentY, camParentZ;
+    [SerializeField] Transform orientation;
+    GameObject activeUnit;
+    Camera cam;
+    Rigidbody body;
+    float moveH, moveV, rotateAmount, zoomAmount, floorHeight = 0f;
+    public float heightOffset = 2f;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        controller = GetComponent<CharacterController>();
+        body = GetComponent<Rigidbody>();
+        cam = Camera.main;
     }
 
     // Update is called once per frame
     void Update()
     {
-        GetInput();
-        MoveCamera();
-    }
-    void GetInput()
-    {
-        moveH = Input.GetAxis("Horizontal") * moveSpeed;
-        moveV = Input.GetAxis("Vertical") * moveSpeed;
+        activeUnit = cam.GetComponent<PlayerGUI>().activeUnit;
+        if (activeUnit == null)
+        {
+            moveH = Input.GetAxis("Horizontal") * moveSpeed;
+            moveV = Input.GetAxis("Vertical") * moveSpeed;
+            rotateAmount = Input.GetAxis("QE") * rotateSpeed;
+            zoomAmount = Input.GetAxis("Mouse ScrollWheel") * -rotateSpeed;
 
-        //Horizontal = Y, Vertical = X, this is intentional, not a mistake. Horrible, I know.
-        camH = Input.GetAxis("QE") * rotateSpeedY * Time.deltaTime;
-        camZoom = Input.GetAxis("Mouse ScrollWheel");
-
+            MoveCamera();
+            RotateCamera();
+            ZoomCamera();
+            cam.transform.LookAt(transform);
+        }
     }
 
     void MoveCamera()
     {
-        controller.transform.Rotate(0, camH, 0);
-        controller.transform.rotation = Quaternion.Euler(0, Camera.main.transform.rotation.y, 0);
-        controller.SimpleMove(new Vector3(moveH, 0, moveV));
-    }
+        if (GetFloorHeight() != 0)
+        {
+            floorHeight = GetFloorHeight();
+        }
 
+        Quaternion cameraFacing = new Quaternion(0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
+        orientation.rotation = cameraFacing;
+
+        Vector3 moveDirection = (orientation.forward * moveV) + (orientation.right * moveH);
+        moveDirection = Vector3.Normalize(moveDirection);
+        // Analog input not properly supported currently, revisit in future.
+
+        body.AddForce(moveSpeed * moveDirection);
+        body.transform.position = new Vector3(body.transform.position.x, floorHeight + heightOffset, body.transform.position.z);
+    }
+    void RotateCamera()
+    {
+        transform.Rotate(Vector3.up, rotateAmount);
+    }
+    void ZoomCamera()
+    {
+        float newZoomZ = Mathf.Clamp(camParentZ.transform.localPosition.z + zoomAmount, minZoom, maxZoom);
+        float newZoomY = Mathf.Clamp(newZoomZ * newZoomZ / 10f, 0.1f, maxZoom);
+
+        camParentY.transform.localPosition = new Vector3(camParentY.transform.localPosition.x, newZoomY, camParentY.transform.localPosition.z);
+        camParentZ.transform.localPosition = new Vector3(camParentZ.transform.localPosition.x, camParentZ.transform.localPosition.y, newZoomZ);
+    }
+    float GetFloorHeight()
+    {
+        Ray surfaceDetect = new Ray(transform.position, Vector3.down);
+        if (Physics.Raycast(surfaceDetect, out RaycastHit rayHitFloor))
+        {
+            return rayHitFloor.point.y;   
+        }
+        else { return 0f; }
+    }
 }
