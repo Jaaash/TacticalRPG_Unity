@@ -34,8 +34,8 @@ public class TopDownCamMovement : MonoBehaviour
         {
             moveH = Input.GetAxis("Horizontal") * moveSpeed;
             moveV = Input.GetAxis("Vertical") * moveSpeed;
-            rotateAmount = Input.GetAxis("QE") * rotateSpeed;
-            zoomAmount = Input.GetAxis("Mouse ScrollWheel") * -rotateSpeed;
+            rotateAmount = Input.GetAxis("QE") * rotateSpeed * Time.deltaTime;
+            zoomAmount = Input.GetAxis("Mouse ScrollWheel") * -rotateSpeed * Time.deltaTime;
 
             MoveCamera();
             RotateCamera();
@@ -58,7 +58,7 @@ public class TopDownCamMovement : MonoBehaviour
         moveDirection = Vector3.Normalize(moveDirection);
         // Analog input not properly supported currently, revisit in future.
 
-        body.AddForce(moveSpeed * moveDirection);
+        body.AddForce((moveSpeed * moveDirection) * Time.deltaTime * 100f);
         body.transform.position = new Vector3(body.transform.position.x, floorHeight + heightOffset, body.transform.position.z);
     }
     void RotateCamera()

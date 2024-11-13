@@ -590,7 +590,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  rotateSpeed: 5
+  rotateSpeed: 50
   maxZoom: 15
   minZoom: 1
   camParentY: {fileID: 1731921635}
@@ -8397,19 +8397,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9989635
+      value: -0.066621676
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.04551992
+      value: 0.99777836
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -8417,7 +8417,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 5.218
+      value: 187.64
       objectReference: {fileID: 0}
     - target: {fileID: 3848531728806548269, guid: d33151d3b37b1be419858d0c790c29c9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -10385,7 +10385,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1273062460}
   - {fileID: 658374080}
-  - {fileID: 6851803936272315419}
   - {fileID: 1263089819}
   - {fileID: 1702731540}
   - {fileID: 1769174968}
@@ -10393,5 +10392,6 @@ SceneRoots:
   - {fileID: 6215766769403081169}
   - {fileID: 572185317}
   - {fileID: 1897706096}
+  - {fileID: 6851803936272315419}
   - {fileID: 1392430778}
   - {fileID: 1269575718}

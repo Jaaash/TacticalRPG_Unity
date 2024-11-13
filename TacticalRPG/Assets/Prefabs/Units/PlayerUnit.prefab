@@ -224,16 +224,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4810b3d2f32e82f428f7f13457deb15a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  modelAnimator: {fileID: 3900053830340762036}
+  hitboxAnimator: {fileID: 2996272747005594271}
+  model: {fileID: 783049462566725322}
   health: 10
   maxHealth: 10
   baseSpeed: 50
   aimingSpeed: 20
+  animSpeedMultiplier: 0.2
   actionPoints: 0
   tempAP: 0
   maxActionPoints: 10
   movementAPMult: 0.2
-  camSpeedX: 70
-  camSpeedY: 20
+  camSpeedX: 1.5
+  camSpeedY: 1.5
   orientation: {fileID: 27066749789861426}
   moving: 0
   target: {fileID: 0}
@@ -250,10 +254,7 @@ MonoBehaviour:
   rounds: 1
   shotAPCost: 5
   damage: 5
-  modelAnimator: {fileID: 3900053830340762036}
-  hitboxAnimator: {fileID: 2996272747005594271}
-  model: {fileID: 783049462566725322}
-  animSpeedMultiplier: 0.2
+  recoil: 0.05
 --- !u!54 &7736887091123243884
 Rigidbody:
   m_ObjectHideFlags: 0

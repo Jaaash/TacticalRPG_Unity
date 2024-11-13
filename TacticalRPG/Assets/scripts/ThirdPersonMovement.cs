@@ -10,6 +10,17 @@ using UnityEngine.XR;
 
 public class ThirdPersonMovement : MonoBehaviour
 {
+    [Header("Unit Setup")]
+    [SerializeField] Animator modelAnimator;
+    [SerializeField] Animator hitboxAnimator;
+    [SerializeField] GameObject model;
+    Rigidbody body;
+    PlayerGUI playerControls;
+    new CapsuleCollider collider;
+    GameObject activeUnit;
+    Transform camPivot;
+    Camera cam;
+
     [Header("Health/Armour")]
     public int health = 10;
     public int maxHealth = 10;
@@ -17,14 +28,18 @@ public class ThirdPersonMovement : MonoBehaviour
     [Header("Movement")]
     public float baseSpeed = 8f;
     public float aimingSpeed = 3f;
+    public float animSpeedMultiplier = 0.1f;
     float moveSpeed;
     RaycastHit rayHitFloor;
+    Vector3 moveDirection;
+    Vector3 lastDirection;
 
     [Header("Action Points")]
     public int actionPoints;
     public int tempAP;
     public int maxActionPoints = 10;
     public float movementAPMult = 0.2f;
+    Vector3 startPosition, endPosition;
 
     [Header("Camera")]
     [SerializeField] float camSpeedX = 50f;
@@ -55,21 +70,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public int rounds = 5;
     public int shotAPCost = 5;
     public int damage = 6;
-
-    Vector3 moveDirection;
-    Vector3 startPosition, endPosition;
-    Rigidbody body;
-
-    PlayerGUI playerControls;
-    new CapsuleCollider collider;
-    [SerializeField] Animator modelAnimator;
-    [SerializeField] Animator hitboxAnimator;
-    GameObject activeUnit;
-    Transform camPivot;
-    Camera cam;
-    [SerializeField] GameObject model;
-
-    public float animSpeedMultiplier = 0.1f;
+    public float recoil = 0.2f;
 
 
     void Start()
@@ -86,6 +87,8 @@ public class ThirdPersonMovement : MonoBehaviour
         actionPoints = maxActionPoints;
         accuracyRadius = baseVariance;
         startingVariance = baseVariance;
+
+        lastDirection = transform.forward * 2f;
     }
 
     void Update()
@@ -103,7 +106,24 @@ public class ThirdPersonMovement : MonoBehaviour
         else
         {
             GetInput();
-            SetAnimationParams();
+            MoveCamera();
+
+            if (!aimButton)
+            {
+                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 70f, 0.2f);
+                moveSpeed = baseSpeed;
+                fireButton = false;
+            }
+            else
+            {
+                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f, 0.2f);
+                moveSpeed = aimingSpeed;
+                if (fireButton && !moving)
+                {
+                    actionPoints = tempAP;
+                    FireWeapon();
+                }
+            }
         }
 
         hitboxAnimator.gameObject.transform.position = modelAnimator.gameObject.transform.position;
@@ -111,13 +131,8 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (activeUnit != gameObject) { return; }
-        else
-        {
-            GetInput();
-            MovePlayer();
-            MoveCamera();
-        }
+        MovePlayer();
+        SetAnimationParams();
     }
 
 
@@ -127,17 +142,21 @@ public class ThirdPersonMovement : MonoBehaviour
         moveV = Input.GetAxis("Vertical");
 
         //H = Y, V = X, this is intentional, not a mistake. Horrible, I know.
-        camH = Input.GetAxis("Mouse Y") * camSpeedY * Time.deltaTime;
-        camV = Input.GetAxis("Mouse X") * camSpeedX * Time.deltaTime;
+        camH = Input.GetAxis("Mouse Y") * camSpeedY;
+        camV = Input.GetAxis("Mouse X") * camSpeedX;
 
-        fireButton = Input.GetKeyDown(KeyCode.Mouse0);
+        fireButton |= Input.GetKeyDown(KeyCode.Mouse0);
         aimButton = Input.GetKey(KeyCode.Mouse1);
-        backspaceDown = Input.GetKeyDown(KeyCode.Backspace);
-        spacebarDown = Input.GetKeyDown(KeyCode.Space);
+        backspaceDown |= Input.GetKeyDown(KeyCode.Backspace);
+        spacebarDown |= Input.GetKeyDown(KeyCode.Space);
     }
 
     void MovePlayer()
     {
+        if (moveDirection != Vector3.zero)
+        {
+            lastDirection = moveDirection;
+        }
         Ray surfaceDetect = new Ray(new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z), Vector3.down);
 
         Vector3 floorNormal = Vector3.up;
@@ -152,28 +171,10 @@ public class ThirdPersonMovement : MonoBehaviour
         // Analog input not properly supported currently, revisit in future.
 
         ApplyMovementEffects();
-
-        if (!aimButton)
-        {
-            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 70f, 0.2f);
-            moveSpeed = baseSpeed;
-        }
-        else
-        {
-            moveSpeed = aimingSpeed;
-            if (fireButton && !moving)
-            {
-                actionPoints = tempAP;
-                FireWeapon();
-            }
-        }
-
     }
 
     void MoveCamera()
     {
-        float modelFacing = model.transform.eulerAngles.y;
-
         Quaternion cameraFacing = new Quaternion(0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
         orientation.rotation = cameraFacing;
 
@@ -186,22 +187,32 @@ public class ThirdPersonMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, yRotate, 0f);
         camPivot.localRotation = Quaternion.Euler(xRotate, 0f, 0f);
 
-        if (aimButton)
+        RotateModel();
+
+    }
+
+    void RotateModel()
+    {
+        Vector3 modelFacing = model.transform.position + lastDirection;
+
+
+        if (aimButton)  // while aiming
         {
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
-            Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f, 0.2f);
+            lastDirection = orientation.forward;
         }
-        else if (moveDirection != Vector3.zero)
+        else if (moveDirection != Vector3.zero)  // while moving
         {
             Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
 
         }
-        else
+        else  // while standing still
         {
-            model.transform.rotation = Quaternion.Euler(0, modelFacing, 0f);
+            model.transform.LookAt(modelFacing);
         }
-
+        
+        Debug.DrawLine(model.transform.position, modelFacing, Color.magenta, 0.1f);
     }
 
     public void FireWeapon()
@@ -244,8 +255,13 @@ public class ThirdPersonMovement : MonoBehaviour
             }
 
             actionPoints -= shotAPCost;
+            accuracyRadius = Mathf.Min(accuracyRadius + recoil, maxVariance);
+            startingVariance = accuracyRadius;
         }
-        else { Debug.Log("Not enough AP!"); }
+        else { 
+            Debug.Log("Not enough AP!"); }
+
+        fireButton = false;
     }
 
     void ApplyMovementEffects()
@@ -257,6 +273,7 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             moving = true;
             startPosition = transform.position;
+            spacebarDown = false;
         }
         if (moving)
         {
@@ -270,7 +287,7 @@ public class ThirdPersonMovement : MonoBehaviour
             }
             else
             {
-                body.AddForce(startPosition - body.transform.position, ForceMode.Force); // towards startingPosition
+                body.AddForce(startPosition - body.transform.position, ForceMode.Force); // Push unit towards startingPosition
                 // Potentially will cause problems when NavMesh pathfinding is implemented. Alter to push towards the last 'corner' in the path instead?
             }
         }
@@ -279,6 +296,7 @@ public class ThirdPersonMovement : MonoBehaviour
             moving = false;
             actionPoints = tempAP;
             startingVariance = accuracyRadius;
+            backspaceDown = false;
         }
     }
 
@@ -289,7 +307,6 @@ public class ThirdPersonMovement : MonoBehaviour
         result = Mathf.Clamp(result, (startingVariance), (maxVariance));
         return result;
 
-        //TO DO - Recoil
     }
 
     Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
@@ -338,4 +355,5 @@ public class ThirdPersonMovement : MonoBehaviour
         gameObject.SetActive(false);
         playerControls.GetAllActiveUnits();
     }
+
 }
