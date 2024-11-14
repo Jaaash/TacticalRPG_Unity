@@ -9,9 +9,11 @@ public class HUDScript : MonoBehaviour
     [SerializeField] TextMeshProUGUI apDisplay;
     [SerializeField] TextMeshProUGUI hpDisplay;
     [SerializeField] TextMeshProUGUI movingIndicator;
+    [SerializeField] TextMeshProUGUI weaponDisplay;
     [SerializeField] GameObject activeUnit;
     [SerializeField] ThirdPersonMovement unitControls;
     Camera cam;
+    WeaponHandler weapon;
 
     void Start()
     {
@@ -26,8 +28,10 @@ public class HUDScript : MonoBehaviour
         if (activeUnit != null)
         {
             unitControls = activeUnit.GetComponent<ThirdPersonMovement>();
+            weapon = unitControls.weapon;
             apDisplay.text = "AP: " + unitControls.tempAP + " / " + unitControls.maxActionPoints;
             hpDisplay.text = "HP: " + unitControls.health + " / " + unitControls.maxHealth;
+            weaponDisplay.text = weapon.weaponName + ": " + weapon.roundsLoaded + " / " + weapon.magazineSize;
 
             if (unitControls.moving)
             { movingIndicator.gameObject.SetActive(true); }

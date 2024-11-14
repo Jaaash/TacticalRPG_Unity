@@ -105,10 +105,10 @@ public class PlayerGUI : MonoBehaviour
         {
             ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
             unitControls.actionPoints = unitControls.maxActionPoints;
-            unitControls.startingVariance -= unitControls.varianceReductionRate;
-            if (unitControls.startingVariance < unitControls.baseVariance)
+            unitControls.weapon.startingVariance -= unitControls.weapon.varianceReductionRate;
+            if (unitControls.weapon.startingVariance < unitControls.weapon.baseVariance)
             {
-                unitControls.startingVariance = unitControls.baseVariance;
+                unitControls.weapon.startingVariance = unitControls.weapon.baseVariance;
             }
         }
         EnemyTurn();

@@ -53,24 +53,8 @@ public class ThirdPersonMovement : MonoBehaviour
     float xRotate, yRotate;
     bool spacebarDown, backspaceDown;
 
-    [Header("Weapon Output")]
-    public Ray weaponRaycast;
-    public RaycastHit rayCollision;
-    public GameObject target;
-    public LayerMask layerMask;
-
-    [Header("Weapon Stats")]
-    public float baseVariance = 0.01f;
-    public float accuracyRadius;
-    public float accuracyMultiplier = 0.15f;
-    public float maxVariance = 2f;
-    public float startingVariance;
-    public float varianceReductionRate;
-    public float maxRange = 1000f;
-    public int rounds = 5;
-    public int shotAPCost = 5;
-    public int damage = 6;
-    public float recoil = 0.2f;
+    [Header("Weapon Setup")]
+    public WeaponHandler weapon;
 
 
     void Start()
@@ -85,8 +69,8 @@ public class ThirdPersonMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         moving = false;
         actionPoints = maxActionPoints;
-        accuracyRadius = baseVariance;
-        startingVariance = baseVariance;
+        weapon.accuracyRadius = weapon.baseVariance;
+        weapon.startingVariance = weapon.baseVariance;
 
         lastDirection = transform.forward * 2f;
     }
@@ -116,7 +100,7 @@ public class ThirdPersonMovement : MonoBehaviour
             }
             else
             {
-                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f, 0.2f);
+                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f + -weapon.aimingZoom, 0.2f);
                 moveSpeed = aimingSpeed;
                 if (fireButton && !moving)
                 {
@@ -170,7 +154,7 @@ public class ThirdPersonMovement : MonoBehaviour
         moveDirection = Vector3.Normalize(moveDirection);
         // Analog input not properly supported currently, revisit in future.
 
-        ApplyMovementEffects();
+        ApplyMovementCost();
     }
 
     void MoveCamera()
@@ -217,57 +201,23 @@ public class ThirdPersonMovement : MonoBehaviour
 
     public void FireWeapon()
     {
-        if (shotAPCost <= actionPoints)
+        if (weapon.shotAPCost <= actionPoints)
         {
-            // These lines describe a square around the centre of the camera view.
-            // CirculariseAccuracyBloom() is used to then 'smooth the corners' of this square into a circle instead.
-            float randX = cam.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-            float randY = cam.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-            float randZ = cam.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-
-            Vector3 rayForward = new Vector3(randX, randY, randZ);
-            weaponRaycast = new Ray(camPivot.transform.position, CirulariseAccuracyBloom(cam.transform.forward, rayForward));
-
-            Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
-
-            if (Physics.Raycast(weaponRaycast, out rayCollision, maxRange, layerMask))
-            {
-                target = rayCollision.collider.gameObject;
-
-                if (target.CompareTag("critbox"))
-                {
-                    Debug.Log(target.transform.root + " was CRIT");
-                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
-                    target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage * 2;
-                }
-                else if (target.CompareTag("hitbox"))
-                {
-                    Debug.Log(target.transform.root + " was hit");
-                    Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
-                    target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage;
-                }
-
-            }
-            else
-            {
-                target = null;
-                Debug.Log("Miss!");
-            }
-
-            actionPoints -= shotAPCost;
-            accuracyRadius = Mathf.Min(accuracyRadius + recoil, maxVariance);
-            startingVariance = accuracyRadius;
+            weapon.Fire();
+            actionPoints -= weapon.shotAPCost;
         }
-        else { 
-            Debug.Log("Not enough AP!"); }
+        else
+        { 
+            Debug.Log("Not enough AP!");
+        }
 
         fireButton = false;
     }
 
-    void ApplyMovementEffects()
+    void ApplyMovementCost()
     {
         tempAP = actionPoints;
-        accuracyRadius = startingVariance;
+        weapon.accuracyRadius = weapon.startingVariance;
 
         if (spacebarDown && !moving)   // PLACEHOLDER - Start unit's movement for turn
         {
@@ -278,7 +228,7 @@ public class ThirdPersonMovement : MonoBehaviour
         if (moving)
         {
             endPosition = transform.position;
-            accuracyRadius = AccuracyBloom(startPosition, endPosition);
+            weapon.accuracyRadius = weapon.AccuracyPenalty(startPosition, endPosition);
             tempAP = MovementCost(startPosition, endPosition);
 
             if (tempAP >= 0)
@@ -295,34 +245,9 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             moving = false;
             actionPoints = tempAP;
-            startingVariance = accuracyRadius;
+            weapon.startingVariance = weapon.accuracyRadius;
             backspaceDown = false;
         }
-    }
-
-    float AccuracyBloom(Vector3 startPosition, Vector3 endPosition)
-    {
-        float result = accuracyRadius + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
-
-        result = Mathf.Clamp(result, (startingVariance), (maxVariance));
-        return result;
-
-    }
-
-    Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
-    //Use TAN trigonometric function to calculate a circle around crosshair with radius of accuracyRadius, and re-target any shots which would fall outside that circle.
-    {
-        float adjacent = Vector3.Magnitude(crosshair);
-        float opposite = accuracyRadius;
-
-        float tan = (Mathf.Tan(opposite / adjacent)) * Mathf.Rad2Deg;
-        float angle = Vector3.Angle(crosshair, randomised);
-
-        if (angle > tan)
-        {
-            randomised = crosshair;
-        }
-        return randomised;
     }
 
     int MovementCost(Vector3 startPosition, Vector3 endPosition)
@@ -351,6 +276,10 @@ public class ThirdPersonMovement : MonoBehaviour
     }
     IEnumerator UnitDead()
     {
+        if (activeUnit == gameObject)
+        {
+            playerControls.activeUnit = null;
+        }
         yield return new WaitForSeconds(5);
         gameObject.SetActive(false);
         playerControls.GetAllActiveUnits();
