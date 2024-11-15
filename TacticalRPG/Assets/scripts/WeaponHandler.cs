@@ -34,6 +34,7 @@ public class WeaponHandler : MonoBehaviour
                 HitScan();
             }
             Recoil(); // Recoil only after all rays have been fired.
+            roundsLoaded--;
         }
         if (isBurstFire)
         {
@@ -43,6 +44,7 @@ public class WeaponHandler : MonoBehaviour
         {
             HitScan();
             Recoil();
+            roundsLoaded--;
         }
     }
 
@@ -134,6 +136,7 @@ public class WeaponHandler : MonoBehaviour
         {
             HitScan();
             Recoil();
+            roundsLoaded--;
             yield return new WaitForSeconds(delay);
         }
     }

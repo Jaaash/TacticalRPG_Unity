@@ -51,7 +51,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public bool moving;
     float moveH, moveV, camH, camV;
     float xRotate, yRotate;
-    bool spacebarDown, backspaceDown;
+    bool spacebarDown, backspaceDown, reloadButton;
 
     [Header("Weapon Setup")]
     public WeaponHandler weapon;
@@ -83,6 +83,17 @@ public class ThirdPersonMovement : MonoBehaviour
             modelAnimator.SetBool("Dead", true);
             hitboxAnimator.SetBool("Dead", true);
             StartCoroutine(UnitDead());
+        }
+
+        if (reloadButton && weapon.roundsLoaded < weapon.magazineSize)
+        {
+            if (actionPoints > weapon.reloadAPCost)
+            {
+                actionPoints -= weapon.reloadAPCost;
+                weapon.Reload();
+                reloadButton = false;
+            }
+            else { Debug.Log("Not enough AP to reload"); }
         }
 
         activeUnit = playerControls.activeUnit;
@@ -133,6 +144,7 @@ public class ThirdPersonMovement : MonoBehaviour
         aimButton = Input.GetKey(KeyCode.Mouse1);
         backspaceDown |= Input.GetKeyDown(KeyCode.Backspace);
         spacebarDown |= Input.GetKeyDown(KeyCode.Space);
+        reloadButton |= Input.GetKeyDown(KeyCode.R);
     }
 
     void MovePlayer()
@@ -177,31 +189,31 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void RotateModel()
     {
-        Vector3 modelFacing = model.transform.position + lastDirection;
+        float modelFacing = (model.transform.position + lastDirection).y;
 
 
         if (aimButton)  // while aiming
         {
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
-            lastDirection = orientation.forward;
+            lastDirection = new Vector3(0, orientation.transform.eulerAngles.y, 0);
         }
         else if (moveDirection != Vector3.zero)  // while moving
         {
             Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
-
+            lastDirection = new Vector3(0, orientation.transform.eulerAngles.y, 0);
         }
         else  // while standing still
         {
-            model.transform.LookAt(modelFacing);
+            model.transform.rotation = Quaternion.Euler(0, modelFacing, 0f);
         }
         
-        Debug.DrawLine(model.transform.position, modelFacing, Color.magenta, 0.1f);
+        //Debug.DrawLine(model.transform.position, modelFacing, Color.magenta, 0.1f);
     }
 
     public void FireWeapon()
     {
-        if (weapon.shotAPCost <= actionPoints)
+        if (weapon.shotAPCost <= actionPoints && weapon.roundsLoaded > 0)
         {
             weapon.Fire();
             actionPoints -= weapon.shotAPCost;
