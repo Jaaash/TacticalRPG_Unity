@@ -7,7 +7,7 @@ public class WeaponHandler : MonoBehaviour
 {
     public string weaponName;
     public int damage, magazineSize, roundsLoaded, shotAPCost, reloadAPCost, shotsPerClick;
-    public float accuracyRadius, startingVariance, baseVariance, accuracyMultiplier, maxVariance, varianceReductionRate, maxRange, recoil, aimingZoom;
+    public float accuracyRadius, startingVariance, baseVariance, movementVarianceMultiplier, maxVariance, varianceReductionRate, maxRange, recoil, aimingZoom;
     public bool isShotgun, isBurstFire;
 
     Camera cam;
@@ -100,7 +100,7 @@ public class WeaponHandler : MonoBehaviour
     }
     public float AccuracyPenalty(Vector3 startPosition, Vector3 endPosition)
     {
-        float result = accuracyRadius + (DistanceMoved(startPosition, endPosition) / 10) * accuracyMultiplier;
+        float result = accuracyRadius + (DistanceMoved(startPosition, endPosition) / 10) * movementVarianceMultiplier;
         result = Mathf.Clamp(result, (startingVariance), (maxVariance));
         return result;
     }

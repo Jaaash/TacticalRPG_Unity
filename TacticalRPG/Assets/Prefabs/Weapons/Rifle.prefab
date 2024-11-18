@@ -196,13 +196,15 @@ MonoBehaviour:
   accuracyRadius: 0
   startingVariance: 0
   baseVariance: 0.01
-  accuracyMultiplier: 0.02
+  movementVarianceMultiplier: 0
   maxVariance: 0.15
   varianceReductionRate: 0.2
   maxRange: 100
-  recoil: 0.05
+  recoil: 0.025
+  aimingZoom: 0
   isShotgun: 0
   isBurstFire: 0
+  activeUnit: {fileID: 0}
   layerMask:
     serializedVersion: 2
     m_Bits: 384

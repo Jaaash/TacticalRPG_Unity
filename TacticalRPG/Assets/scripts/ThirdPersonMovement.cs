@@ -87,13 +87,13 @@ public class ThirdPersonMovement : MonoBehaviour
 
         if (reloadButton && weapon.roundsLoaded < weapon.magazineSize)
         {
-            if (actionPoints > weapon.reloadAPCost)
+            if (actionPoints >= weapon.reloadAPCost)
             {
                 actionPoints -= weapon.reloadAPCost;
                 weapon.Reload();
                 reloadButton = false;
             }
-            else { Debug.Log("Not enough AP to reload"); }
+            else { Debug.Log("Not enough AP to reload"); reloadButton = false; }
         }
 
         activeUnit = playerControls.activeUnit;
