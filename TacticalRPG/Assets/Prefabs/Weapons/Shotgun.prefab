@@ -13,6 +13,10 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
+      propertyPath: recoil
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
       propertyPath: isShotgun
       value: 1
       objectReference: {fileID: 0}
@@ -35,6 +39,10 @@ PrefabInstance:
     - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
       propertyPath: shotsPerClick
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
+      propertyPath: movementVarianceMultiplier
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 4368210467429271816, guid: 11110fbb19409e845a52542106f8232e, type: 3}
       propertyPath: m_LocalScale.x

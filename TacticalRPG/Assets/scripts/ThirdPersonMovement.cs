@@ -6,6 +6,7 @@ using System.Diagnostics.Tracing;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 using UnityEngine.XR;
 
 public class ThirdPersonMovement : MonoBehaviour
@@ -32,7 +33,7 @@ public class ThirdPersonMovement : MonoBehaviour
     float moveSpeed;
     RaycastHit rayHitFloor;
     Vector3 moveDirection;
-    Vector3 lastDirection;
+    Vector3 lastFacing;
 
     [Header("Action Points")]
     public int actionPoints;
@@ -66,13 +67,13 @@ public class ThirdPersonMovement : MonoBehaviour
         collider = transform.GetComponent<CapsuleCollider>();
         camPivot = transform.Find("CamPivot");
 
-        Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
         moving = false;
         actionPoints = maxActionPoints;
         weapon.accuracyRadius = weapon.baseVariance;
         weapon.startingVariance = weapon.baseVariance;
 
-        lastDirection = transform.forward * 2f;
+        lastFacing = model.transform.position + Vector3.forward;
     }
 
     void Update()
@@ -149,10 +150,6 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void MovePlayer()
     {
-        if (moveDirection != Vector3.zero)
-        {
-            lastDirection = moveDirection;
-        }
         Ray surfaceDetect = new Ray(new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z), Vector3.down);
 
         Vector3 floorNormal = Vector3.up;
@@ -164,6 +161,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
         moveDirection = Vector3.ProjectOnPlane((orientation.forward * moveV) + (orientation.right * moveH), floorNormal);
         moveDirection = Vector3.Normalize(moveDirection);
+
         // Analog input not properly supported currently, revisit in future.
 
         ApplyMovementCost();
@@ -189,26 +187,32 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void RotateModel()
     {
-        float modelFacing = (model.transform.position + lastDirection).y;
-
 
         if (aimButton)  // while aiming
         {
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
-            lastDirection = new Vector3(0, orientation.transform.eulerAngles.y, 0);
+            lastFacing = model.transform.position + model.transform.forward;
+
+            Debug.DrawLine(lastFacing, transform.position, Color.red, 0.1f);
         }
         else if (moveDirection != Vector3.zero)  // while moving
         {
             Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
             model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
-            lastDirection = new Vector3(0, orientation.transform.eulerAngles.y, 0);
+            lastFacing = model.transform.position + model.transform.forward;
+
+            Debug.DrawLine(lastFacing, transform.position, Color.blue, 0.1f);
         }
-        else  // while standing still
+        else if (body.velocity != Vector3.zero)
         {
-            model.transform.rotation = Quaternion.Euler(0, modelFacing, 0f);
+            lastFacing = model.transform.position + model.transform.forward;
+        }
+        else  // while no WASD or RightMouse
+        {
+            model.transform.LookAt(lastFacing, Vector3.up);
+            Debug.DrawLine(lastFacing, transform.position, Color.yellow, 0.1f);
         }
         
-        //Debug.DrawLine(model.transform.position, modelFacing, Color.magenta, 0.1f);
     }
 
     public void FireWeapon()
