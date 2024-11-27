@@ -22,7 +22,7 @@ public class PlayerGUI : MonoBehaviour
     {
         cam = Camera.main;
         endTurn.onClick.AddListener(EndPlayerTurn);
-        GetAllActiveUnits();
+        GetAllUnits();
     }
 
     // Update is called once per frame
@@ -38,8 +38,6 @@ public class PlayerGUI : MonoBehaviour
                 Ray ray = cam.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
-                    Debug.DrawRay(cam.transform.position, hit.point, Color.red, 1f);
-
                     if (hit.collider.transform.root.CompareTag("playerunit"))
                     {
                         activeUnit = hit.collider.transform.root.gameObject;
@@ -107,10 +105,7 @@ public class PlayerGUI : MonoBehaviour
             unitControls.moving = false;
             unitControls.actionPoints = unitControls.maxActionPoints;
             unitControls.weapon.startingVariance -= unitControls.weapon.varianceReductionRate;
-            if (unitControls.weapon.startingVariance < unitControls.weapon.baseVariance)
-            {
-                unitControls.weapon.startingVariance = unitControls.weapon.baseVariance;
-            }
+            unitControls.weapon.startingVariance = Mathf.Clamp(unitControls.weapon.startingVariance, unitControls.weapon.baseVariance, unitControls.weapon.maxVariance);
         }
         EnemyTurn();
     }
@@ -120,7 +115,16 @@ public class PlayerGUI : MonoBehaviour
 
         foreach (GameObject unit in enemyUnits)
         {
-            Debug.Log(unit.name + " starting turn");
+            Debug.Log("//////////////" + unit.name + " starting turn /////////////////");
+            EnemyController enemy = unit.GetComponent<EnemyController>();
+            ThirdPersonMovement unitControls = enemy.GetComponent<ThirdPersonMovement>();
+            unitControls.moving = false;
+            unitControls.actionPoints = unitControls.maxActionPoints;
+            unitControls.weapon.startingVariance -= unitControls.weapon.varianceReductionRate;
+
+            unitControls.weapon.startingVariance = Mathf.Clamp(unitControls.weapon.startingVariance, unitControls.weapon.baseVariance, unitControls.weapon.maxVariance);
+
+            enemy.TakeTurn();
         }
 
         Debug.Log("Ending enemy turn");
@@ -163,7 +167,7 @@ public class PlayerGUI : MonoBehaviour
         }
     }
 
-    public void GetAllActiveUnits()
+    public void GetAllUnits()
     {
         playerUnits = GameObject.FindGameObjectsWithTag("playerunit");
         enemyUnits = GameObject.FindGameObjectsWithTag("enemyunit");

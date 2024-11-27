@@ -22,27 +22,27 @@ public class WeaponHandler : MonoBehaviour
         accuracyRadius = baseVariance;
         startingVariance = baseVariance;
     }
-    public void Fire()
+    public void Fire(GameObject shooter)
     {
-        activeUnit = cam.GetComponent<PlayerGUI>().activeUnit;
-        weaponRayStart = activeUnit.transform.Find("CamPivot/WeaponRayStart").transform;
+        weaponRayStart = shooter.transform.Find("CamPivot/WeaponRayStart").transform;
+        Debug.Log(shooter);
 
         if (isShotgun)
         {
             for (int i = 0; i < shotsPerClick; i++)
             {
-                HitScan();
+                HitScan(shooter);
             }
             Recoil(); // Recoil only after all rays have been fired.
             roundsLoaded--;
         }
         if (isBurstFire)
         {
-            StartCoroutine(BurstFire(0.1f));
+            StartCoroutine(BurstFire(0.1f, shooter));
         }
-        else
+        else if (!isShotgun && !isBurstFire) 
         {
-            HitScan();
+            HitScan(shooter);
             Recoil();
             roundsLoaded--;
         }
@@ -53,19 +53,28 @@ public class WeaponHandler : MonoBehaviour
         roundsLoaded = magazineSize;
     }
 
-    public void HitScan()
+    public void HitScan(GameObject shooter)
     {
 
         Ray weaponRaycast;
         RaycastHit rayCollision;
         GameObject target;
 
-        float randX = cam.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-        float randY = cam.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
-        float randZ = cam.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
+        activeUnit = cam.GetComponent<PlayerGUI>().activeUnit;
+        if (activeUnit != null)
+        {
+            if (activeUnit.CompareTag("playerunit"))
+            {
+                shooter = cam.gameObject;
+            }
+        }
+
+        float randX = shooter.transform.forward.x + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
+        float randY = shooter.transform.forward.y + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
+        float randZ = shooter.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
 
         Vector3 rayForward = new Vector3(randX, randY, randZ);
-        weaponRaycast = new Ray(weaponRayStart.transform.position, CirulariseAccuracyBloom(cam.transform.forward, rayForward));
+        weaponRaycast = new Ray(weaponRayStart.transform.position, CirulariseAccuracyBloom(shooter.transform.forward, rayForward));
 
         Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
 
@@ -75,20 +84,17 @@ public class WeaponHandler : MonoBehaviour
 
             if (target.CompareTag("critbox"))
             {
-                Debug.Log(target.transform.root + " was CRIT");
-                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.green, 10f);
+                Debug.DrawLine(weaponRaycast.origin, rayCollision.point, Color.green, 10f);
                 target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage * 2;
             }
             else if (target.CompareTag("hitbox"))
             {
-                Debug.Log(target.transform.root + " was hit");
-                Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.blue, 10f);
+                Debug.DrawLine(weaponRaycast.origin, rayCollision.point, Color.blue, 10f);
                 target.transform.root.GetComponent<ThirdPersonMovement>().health -= damage;
             }
             else
             {
                 target = null;
-                Debug.Log("Miss!");
             }
         }
     }
@@ -130,14 +136,17 @@ public class WeaponHandler : MonoBehaviour
         return randomised;
     }
 
-    IEnumerator BurstFire(float delay)
+    IEnumerator BurstFire(float delay, GameObject shooter)
     {
         for (int i = 0; i < shotsPerClick; i++)
         {
-            HitScan();
-            Recoil();
-            roundsLoaded--;
-            yield return new WaitForSeconds(delay);
+            if (shotsPerClick > 0)
+            {
+                HitScan(shooter);
+                Recoil();
+                roundsLoaded--;
+                yield return new WaitForSeconds(delay);
+            }
         }
     }
 }

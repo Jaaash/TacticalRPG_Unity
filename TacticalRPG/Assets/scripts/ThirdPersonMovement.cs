@@ -211,7 +211,7 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         if (weapon.shotAPCost <= actionPoints && weapon.roundsLoaded > 0)
         {
-            weapon.Fire();
+            weapon.Fire(gameObject);
             actionPoints -= weapon.shotAPCost;
         }
         else
@@ -291,7 +291,7 @@ public class ThirdPersonMovement : MonoBehaviour
         }
         yield return new WaitForSeconds(5);
         gameObject.SetActive(false);
-        playerControls.GetAllActiveUnits();
+        playerControls.GetAllUnits();
     }
 
 }
