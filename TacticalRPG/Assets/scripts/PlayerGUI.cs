@@ -74,7 +74,6 @@ public class PlayerGUI : MonoBehaviour
     }
     void CycleActiveUnit()
     {
-
         if (activeUnit == null) 
         {
             activeUnit = playerUnits[0];
@@ -82,13 +81,14 @@ public class PlayerGUI : MonoBehaviour
         }
         else
         {
-            int index = System.Array.IndexOf(playerUnits, activeUnit);
-            index++;
-            if (index > (playerUnits.Length - 1))
+            activeUnit.GetComponent<ThirdPersonMovement>().moving = false;
+            int i = System.Array.IndexOf(playerUnits, activeUnit);
+            i++;
+            if (i > (playerUnits.Length - 1))
             {
-                index = 0;
+                i = 0;
             }
-            activeUnit = playerUnits[index];
+            activeUnit = playerUnits[i];
             AttachCamToActiveUnit();
         }
     }
@@ -100,10 +100,11 @@ public class PlayerGUI : MonoBehaviour
     }
     void EndPlayerTurn()
     {
-        RemovePlayerControl();
+        SetPlayerControl(false);
         foreach (GameObject unit in playerUnits) 
         {
             ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
+            unitControls.moving = false;
             unitControls.actionPoints = unitControls.maxActionPoints;
             unitControls.weapon.startingVariance -= unitControls.weapon.varianceReductionRate;
             if (unitControls.weapon.startingVariance < unitControls.weapon.baseVariance)
@@ -123,24 +124,19 @@ public class PlayerGUI : MonoBehaviour
         }
 
         Debug.Log("Ending enemy turn");
-        ReturnPlayerControl();
+        SetPlayerControl(true);
     }
-    void RemovePlayerControl()
+
+    void SetPlayerControl(bool isPlayerTurn)
     {
-        activeUnit = null;
-        foreach (GameObject unit in playerUnits)
+        if (!isPlayerTurn)
         {
-            ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
-            unitControls.enabled = false;
+            activeUnit = null;
         }
-    }
-    void ReturnPlayerControl()
-    {
-        
         foreach (GameObject unit in playerUnits)
         {
             ThirdPersonMovement unitControls = unit.GetComponent<ThirdPersonMovement>();
-            unitControls.enabled = true;
+            unitControls.enabled = isPlayerTurn;
         }
     }
     void GameOver(bool playerWin)
@@ -149,12 +145,12 @@ public class PlayerGUI : MonoBehaviour
         else            { Debug.Log("Squad eliminated. Mission Failed.");  }
     }
 
-    void SetTopDownCam(bool topdown)
+    void SetTopDownCam(bool isTopdownMode)
     {
-        topDownUI.enabled = topdown;
-        thirdPersonUI.enabled = !topdown;
+        topDownUI.enabled = isTopdownMode;
+        thirdPersonUI.enabled = !isTopdownMode;
 
-        if (topdown)
+        if (isTopdownMode)
         {
             Cursor.lockState = CursorLockMode.Confined;
             cam.transform.parent = topDownViewpoint.transform;

@@ -48,11 +48,10 @@ public class ThirdPersonMovement : MonoBehaviour
     public Transform orientation;
 
     [Header("Input")]
-    bool fireButton, aimButton;
-    public bool moving;
+    public bool fireButton, aimButton, moving;
     float moveH, moveV, camH, camV;
     float xRotate, yRotate;
-    bool spacebarDown, backspaceDown, reloadButton;
+    bool spacebarDown, reloadButton;
 
     [Header("Weapon Setup")]
     public WeaponHandler weapon;
@@ -78,7 +77,6 @@ public class ThirdPersonMovement : MonoBehaviour
 
     void Update()
     {
-
         if (health < 1)
         {
             modelAnimator.SetBool("Dead", true);
@@ -103,6 +101,7 @@ public class ThirdPersonMovement : MonoBehaviour
         {
             GetInput();
             MoveCamera();
+            RotateModel();
 
             if (!aimButton)
             {
@@ -112,10 +111,11 @@ public class ThirdPersonMovement : MonoBehaviour
             }
             else
             {
-                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f + -weapon.aimingZoom, 0.2f);
+                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f - weapon.aimingZoom, 0.2f);
                 moveSpeed = aimingSpeed;
-                if (fireButton && !moving)
+                if (fireButton)
                 {
+                    moving = false;
                     actionPoints = tempAP;
                     FireWeapon();
                 }
@@ -143,7 +143,6 @@ public class ThirdPersonMovement : MonoBehaviour
 
         fireButton |= Input.GetKeyDown(KeyCode.Mouse0);
         aimButton = Input.GetKey(KeyCode.Mouse1);
-        backspaceDown |= Input.GetKeyDown(KeyCode.Backspace);
         spacebarDown |= Input.GetKeyDown(KeyCode.Space);
         reloadButton |= Input.GetKeyDown(KeyCode.R);
     }
@@ -160,9 +159,7 @@ public class ThirdPersonMovement : MonoBehaviour
         }
 
         moveDirection = Vector3.ProjectOnPlane((orientation.forward * moveV) + (orientation.right * moveH), floorNormal);
-        moveDirection = Vector3.Normalize(moveDirection);
-
-        // Analog input not properly supported currently, revisit in future.
+        moveDirection = Vector3.Normalize(moveDirection); // Analog input not properly supported currently, revisit in future.
 
         ApplyMovementCost();
     }
@@ -181,8 +178,6 @@ public class ThirdPersonMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, yRotate, 0f);
         camPivot.localRotation = Quaternion.Euler(xRotate, 0f, 0f);
 
-        RotateModel();
-
     }
 
     void RotateModel()
@@ -190,7 +185,7 @@ public class ThirdPersonMovement : MonoBehaviour
 
         if (aimButton)  // while aiming
         {
-            model.transform.rotation = Quaternion.Slerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
+            model.transform.rotation = Quaternion.Lerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
             lastFacing = model.transform.position + model.transform.forward;
 
             Debug.DrawLine(lastFacing, transform.position, Color.red, 0.1f);
@@ -198,21 +193,18 @@ public class ThirdPersonMovement : MonoBehaviour
         else if (moveDirection != Vector3.zero)  // while moving
         {
             Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
-            model.transform.rotation = Quaternion.Slerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
+            model.transform.rotation = Quaternion.Lerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);
             lastFacing = model.transform.position + model.transform.forward;
 
             Debug.DrawLine(lastFacing, transform.position, Color.blue, 0.1f);
         }
-        else if (body.velocity != Vector3.zero)
-        {
-            lastFacing = model.transform.position + model.transform.forward;
-        }
         else  // while no WASD or RightMouse
         {
-            model.transform.LookAt(lastFacing, Vector3.up);
+            lastFacing = new Vector3(lastFacing.x, model.transform.position.y, lastFacing.z);
+            model.transform.LookAt(lastFacing);
             Debug.DrawLine(lastFacing, transform.position, Color.yellow, 0.1f);
         }
-        
+
     }
 
     public void FireWeapon()
@@ -246,6 +238,7 @@ public class ThirdPersonMovement : MonoBehaviour
             endPosition = transform.position;
             weapon.accuracyRadius = weapon.AccuracyPenalty(startPosition, endPosition);
             tempAP = MovementCost(startPosition, endPosition);
+            fireButton = false;
 
             if (tempAP >= 0)
             {
@@ -257,12 +250,12 @@ public class ThirdPersonMovement : MonoBehaviour
                 // Potentially will cause problems when NavMesh pathfinding is implemented. Alter to push towards the last 'corner' in the path instead?
             }
         }
-        if (backspaceDown || !moving) // PLACEHOLDER - End unit's movement for turn
+        if (spacebarDown && moving) // PLACEHOLDER - End unit's movement for turn
         {
             moving = false;
             actionPoints = tempAP;
             weapon.startingVariance = weapon.accuracyRadius;
-            backspaceDown = false;
+            spacebarDown = false;
         }
     }
 

@@ -37,6 +37,10 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
+      propertyPath: roundsLoaded
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3030632974268452024, guid: 11110fbb19409e845a52542106f8232e, type: 3}
       propertyPath: shotsPerClick
       value: 6
       objectReference: {fileID: 0}
