@@ -153,6 +153,8 @@ MonoBehaviour:
   camSpeedX: 1.5
   camSpeedY: 1.5
   orientation: {fileID: 27066749789861426}
+  fireButton: 0
+  aimButton: 0
   moving: 0
   weapon: {fileID: 7851558914570521194}
 --- !u!54 &7736887091123243884
@@ -261,7 +263,7 @@ Transform:
   m_GameObject: {fileID: 3660783063856580845}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.04, y: -0.45, z: 0.447}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
