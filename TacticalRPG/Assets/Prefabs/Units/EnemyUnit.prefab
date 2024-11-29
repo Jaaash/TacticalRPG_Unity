@@ -482,7 +482,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8144cbdb9be8d0a4d84b75b11178a04c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionRange: 20
+  visionRange: 40
 --- !u!1 &7174394317250010044
 GameObject:
   m_ObjectHideFlags: 0

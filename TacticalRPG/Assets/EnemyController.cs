@@ -9,7 +9,7 @@ public class EnemyController : MonoBehaviour
     ThirdPersonMovement tpmControls;
     public float visionRange = 20f;
     Transform head;
-    // Start is called before the first frame update
+
     void Start()
     {
         tpmControls = GetComponent<ThirdPersonMovement>();
@@ -17,7 +17,7 @@ public class EnemyController : MonoBehaviour
         head = transform.Find("Space_Soldier_A/SK_Soldier_Head");
     }
 
-    // Update is called once per frame
+
     void Update()
     {
 
@@ -25,9 +25,9 @@ public class EnemyController : MonoBehaviour
 
     public void TakeTurn()
     {
-        List<GameObject> allTargets = GetVisiblePlayerUnits().allVisible;
+        //List<GameObject> allTargets = GetVisiblePlayerUnits().allVisible;
         GameObject nearestTarget = GetVisiblePlayerUnits().closestVisible;
-        Debug.Log("Nearest Target: " + nearestTarget);
+
 
         if (nearestTarget != null)
         {
@@ -46,15 +46,17 @@ public class EnemyController : MonoBehaviour
             Transform target = playerUnit.transform.Find("Space_Soldier_A/SK_Soldier_Head");
 
             Ray lineOfSight = new Ray(head.position, Vector3.Normalize(target.position - head.position));
-            if (Physics.Raycast(lineOfSight, out hit))     // Stops working if any line of sight can't be found?????
+            if (Physics.Raycast(lineOfSight, out hit))
             {
-                Debug.Log(hit.transform.gameObject.name);
-                if (hit.collider.gameObject == playerUnit.gameObject) 
+
+                Debug.Log("Targetting: " + target.root.name + "\n" + hit.transform.gameObject.name + " was hit");
+                if (hit.collider.transform.IsChildOf(playerUnit.transform))
                 {
-                    visibleUnits.Add(target.gameObject);
+                    visibleUnits.Add(target.root.gameObject);
+
                     if (hit.distance < shortestRange)
                     {
-                        nearestVisibleUnit = target.root.gameObject;
+                        nearestVisibleUnit = playerUnit;
                         shortestRange = hit.distance;
                         Debug.DrawLine(head.position, hit.point, Color.magenta, 5f);
                     }
