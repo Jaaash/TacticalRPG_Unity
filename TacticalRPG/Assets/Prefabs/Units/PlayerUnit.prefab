@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 825903000095506582}
   - component: {fileID: 7736887091123243884}
   - component: {fileID: 8641050574421317676}
+  - component: {fileID: 5697043750123388777}
   m_Layer: 6
   m_Name: PlayerUnit
   m_TagString: playerunit
@@ -157,6 +158,8 @@ MonoBehaviour:
   aimButton: 0
   moving: 0
   weapon: {fileID: 7851558914570521194}
+  grenade: {fileID: 5697043750123388777}
+  grenadeEquipped: 0
 --- !u!54 &7736887091123243884
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -207,6 +210,21 @@ CapsuleCollider:
   m_Height: 2.17
   m_Direction: 1
   m_Center: {x: 0, y: 1.06, z: 0}
+--- !u!114 &5697043750123388777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563455035980456469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ff02d4258a0ff48bd66ab8107b48f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  throwForce: 20
+  grenadePrefab: {fileID: 6742864384414840353, guid: 481d7a4d199a0e34c873a602a2d5eb7b, type: 3}
+  ghostGrenade: {fileID: 3798015195795385735, guid: b052cfe585a97fc428dc249803443772, type: 3}
 --- !u!1 &3020068369898284539
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,6 +287,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7966722032964322303}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3868411170567156111
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2977761056225292572}
+  m_Layer: 6
+  m_Name: GrenadeParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2977761056225292572
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3868411170567156111}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.16, y: 0.053, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7966722032964322303}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4419551809356887847
 GameObject:
   m_ObjectHideFlags: 0
@@ -300,6 +349,7 @@ Transform:
   m_Children:
   - {fileID: 7273265087165296982}
   - {fileID: 163161505403221389}
+  - {fileID: 2977761056225292572}
   m_Father: {fileID: 3848531728806548269}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4590508657448331779

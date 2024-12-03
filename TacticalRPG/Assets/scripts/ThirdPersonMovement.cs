@@ -20,6 +20,7 @@ public class ThirdPersonMovement : MonoBehaviour
     new CapsuleCollider collider;
     GameObject activeUnit;
     Transform camPivot;
+    Transform grenadeParent;
     Camera cam;
 
     [Header("Health/Armour")]
@@ -51,10 +52,12 @@ public class ThirdPersonMovement : MonoBehaviour
     public bool fireButton, aimButton, moving;
     float moveH, moveV, camH, camV;
     float xRotate, yRotate;
-    bool spacebarDown, reloadButton;
+    bool spacebarDown, reloadButton, grenadeButton;
 
     [Header("Weapon Setup")]
     public WeaponHandler weapon;
+    public GrenadeHandler grenade;
+    public bool grenadeEquipped;
 
 
     void Start()
@@ -64,10 +67,14 @@ public class ThirdPersonMovement : MonoBehaviour
         body = GetComponent<Rigidbody>();
         playerControls = Camera.main.GetComponent<PlayerGUI>();
         collider = transform.GetComponent<CapsuleCollider>();
+        grenade = transform.GetComponent<GrenadeHandler>();
         camPivot = transform.Find("CamPivot");
+        grenadeParent = camPivot.Find("GrenadeParent");
+        
 
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
         moving = false;
+        grenadeEquipped = false;
         actionPoints = maxActionPoints;
         weapon.accuracyRadius = weapon.baseVariance;
         weapon.startingVariance = weapon.baseVariance;
@@ -117,8 +124,29 @@ public class ThirdPersonMovement : MonoBehaviour
                 {
                     moving = false;
                     actionPoints = tempAP;
-                    FireWeapon();
+                    if (grenadeEquipped)
+                    {
+                        grenade.Throw(grenadeParent);
+                        grenade.Unequip();
+                        fireButton = false;
+                    }
+                    else
+                    {
+                        FireWeapon();
+                    }
                 }
+            }
+            if (grenadeButton)
+            {
+                if (!grenadeEquipped)
+                {
+                    grenade.Equip(grenadeParent);
+                }
+                else if (grenadeEquipped)
+                {
+                    grenade.Unequip();
+                }
+                grenadeButton = false;
             }
         }
 
@@ -145,6 +173,7 @@ public class ThirdPersonMovement : MonoBehaviour
         aimButton = Input.GetKey(KeyCode.Mouse1);
         spacebarDown |= Input.GetKeyDown(KeyCode.Space);
         reloadButton |= Input.GetKeyDown(KeyCode.R);
+        grenadeButton |= Input.GetKeyDown(KeyCode.G); 
     }
 
     void MovePlayer()
@@ -292,6 +321,7 @@ public class ThirdPersonMovement : MonoBehaviour
         yield return new WaitForSeconds(5);
         gameObject.SetActive(false);
         playerControls.GetAllUnits();
+        Destroy(gameObject);
     }
 
 }
