@@ -1,14 +1,7 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using UnityEngine.XR;
-
 public class ThirdPersonMovement : MonoBehaviour
 {
     [Header("Unit Setup")]
@@ -30,7 +23,7 @@ public class ThirdPersonMovement : MonoBehaviour
     [Header("Movement")]
     public float baseSpeed = 8f;
     public float aimingSpeed = 3f;
-    public float animSpeedMultiplier = 0.1f;
+    float animSpeedMultiplier = 0.1f;
     float moveSpeed;
     RaycastHit rayHitFloor;
     Vector3 moveDirection;
@@ -65,14 +58,14 @@ public class ThirdPersonMovement : MonoBehaviour
 
         cam = Camera.main;
         body = GetComponent<Rigidbody>();
-        playerControls = Camera.main.GetComponent<PlayerGUI>();
+        playerControls = cam.GetComponent<PlayerGUI>();
         collider = transform.GetComponent<CapsuleCollider>();
         grenade = transform.GetComponent<GrenadeHandler>();
         camPivot = transform.Find("CamPivot");
         grenadeParent = camPivot.Find("GrenadeParent");
         
 
-        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        Cursor.lockState = CursorLockMode.Locked;
         moving = false;
         grenadeEquipped = false;
         actionPoints = maxActionPoints;
@@ -112,13 +105,13 @@ public class ThirdPersonMovement : MonoBehaviour
 
             if (!aimButton)
             {
-                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 70f, 0.2f);
+                cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70f, 0.2f);
                 moveSpeed = baseSpeed;
                 fireButton = false;
             }
             else
             {
-                Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 35f - weapon.aimingZoom, 0.2f);
+                cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 35f - weapon.aimingZoom, 0.2f);
                 moveSpeed = aimingSpeed;
                 if (fireButton)
                 {
@@ -165,7 +158,7 @@ public class ThirdPersonMovement : MonoBehaviour
         moveH = Input.GetAxis("Horizontal");
         moveV = Input.GetAxis("Vertical");
 
-        //H = Y, V = X, this is intentional, not a mistake. Horrible, I know.
+        //H = Y, V = X, this is intentional, not a mistake. Horrible, I know. I copied it from a tutorial.
         camH = Input.GetAxis("Mouse Y") * camSpeedY;
         camV = Input.GetAxis("Mouse X") * camSpeedX;
 
@@ -188,14 +181,15 @@ public class ThirdPersonMovement : MonoBehaviour
         }
 
         moveDirection = Vector3.ProjectOnPlane((orientation.forward * moveV) + (orientation.right * moveH), floorNormal);
-        moveDirection = Vector3.Normalize(moveDirection); // Analog input not properly supported currently, revisit in future.
+        moveDirection = Vector3.Normalize(moveDirection);
+        // Analog input not properly supported currently, revisit in future.
 
         ApplyMovementCost();
     }
 
     void MoveCamera()
     {
-        Quaternion cameraFacing = new Quaternion(0, Camera.main.transform.rotation.y, 0, Camera.main.transform.rotation.w);
+        Quaternion cameraFacing = new Quaternion(0, cam.transform.rotation.y, 0, cam.transform.rotation.w);
         orientation.rotation = cameraFacing;
 
 
@@ -212,14 +206,14 @@ public class ThirdPersonMovement : MonoBehaviour
     void RotateModel()
     {
 
-        if (aimButton)  // while aiming
+        if (aimButton)
         {
             model.transform.rotation = Quaternion.Lerp(model.transform.rotation, orientation.transform.rotation, 0.1f);
             lastFacing = model.transform.position + model.transform.forward;
 
             Debug.DrawLine(lastFacing, transform.position, Color.red, 0.1f);
         }
-        else if (moveDirection != Vector3.zero)  // while moving
+        else if (moveDirection != Vector3.zero)
         {
             Vector3 slopeCorrected = new Vector3(moveDirection.x, 0, moveDirection.z);
             model.transform.rotation = Quaternion.Lerp(model.transform.rotation, Quaternion.LookRotation(slopeCorrected, Vector3.up), 0.1f);

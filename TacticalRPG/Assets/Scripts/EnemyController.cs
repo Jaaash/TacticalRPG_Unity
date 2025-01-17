@@ -33,6 +33,10 @@ public class EnemyController : MonoBehaviour
         {
             FireAt(nearestTarget);
         }
+        else
+        {
+            tpmControls.weapon.Reload();
+        }
     }
     (List<GameObject> allVisible, GameObject closestVisible) GetVisiblePlayerUnits()
     {
@@ -49,7 +53,7 @@ public class EnemyController : MonoBehaviour
             if (Physics.Raycast(lineOfSight, out hit))
             {
 
-                Debug.Log("Targetting: " + target.root.name + "\n" + hit.transform.gameObject.name + " was hit");
+                Debug.Log("Targeting: " + target.root.name + "\n" + hit.transform.gameObject.name + " was hit");
                 if (hit.collider.transform.IsChildOf(playerUnit.transform))
                 {
                     visibleUnits.Add(target.root.gameObject);
@@ -77,10 +81,14 @@ public class EnemyController : MonoBehaviour
             transform.LookAt(target.transform.position, Vector3.up);
             tpmControls.weapon.Fire(gameObject);
         }
+        else
+        {
+            tpmControls.weapon.Reload(); 
+        }
     }
 
     void MoveToCover()
     {
-
+            // TO DO - Implement NavMeshes first lol
     }
 }

@@ -10,7 +10,8 @@ public class crosshair : MonoBehaviour
     [SerializeField] int xhairMult = 1;
     Vector3 defaultXPos, defaultXNeg, defaultYPos, defaultYNeg;
     Camera cam;
-    public float fov;
+    float fov;
+    
     // Start is called before the first frame update
     void Start()
     {

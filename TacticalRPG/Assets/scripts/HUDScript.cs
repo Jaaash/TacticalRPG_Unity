@@ -34,7 +34,7 @@ public class HUDScript : MonoBehaviour
             weapon = unitControls.weapon;
             apDisplay.text = "AP: " + unitControls.tempAP + " / " + unitControls.maxActionPoints;
             hpDisplay.text = "HP: " + unitControls.health + " / " + unitControls.maxHealth;
-            weaponDisplay.text = weapon.weaponName + "\nAmmo: " + weapon.roundsLoaded + " / " + weapon.magazineSize + "\nShoot Cost: " + weapon.shotAPCost + " AP" + "\nReload Cost: " + weapon.reloadAPCost + " AP";
+            weaponDisplay.text = weapon.weaponName + "\nAmmo: " + weapon.roundsLoaded + " / " + weapon.magazineSize + "\nShoot [LMB]: " + weapon.shotAPCost + " AP" + "\nReload [R]: " + weapon.reloadAPCost + " AP";
 
             if (unitControls.moving)
             {

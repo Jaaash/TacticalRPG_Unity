@@ -17,13 +17,11 @@ public class GrenadeHandler : MonoBehaviour
     [SerializeField] GameObject grenadePrefab;
     [SerializeField] GameObject ghostGrenade;
 
-    // Start is called before the first frame update
     void Start()
     {
         unitControls = transform.root.GetComponent<ThirdPersonMovement>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (unitControls.grenadeEquipped == true)

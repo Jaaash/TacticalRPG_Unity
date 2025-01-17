@@ -74,7 +74,7 @@ public class WeaponHandler : MonoBehaviour
         float randZ = shooter.transform.forward.z + UnityEngine.Random.Range(-accuracyRadius, accuracyRadius);
 
         Vector3 rayForward = new Vector3(randX, randY, randZ);
-        weaponRaycast = new Ray(weaponRayStart.transform.position, CirulariseAccuracyBloom(shooter.transform.forward, rayForward));
+        weaponRaycast = new Ray(weaponRayStart.transform.position, CirculariseAccuracyBloom(shooter.transform.forward, rayForward));
 
         Debug.DrawRay(weaponRaycast.origin, weaponRaycast.direction * maxRange, Color.red, 10f);
 
@@ -112,14 +112,14 @@ public class WeaponHandler : MonoBehaviour
     }
 
 
-    public float DistanceMoved(Vector3 startPosition, Vector3 endPosition)
+    float DistanceMoved(Vector3 startPosition, Vector3 endPosition)
     {
         Vector3 shortestPath = endPosition - startPosition;
         return Vector3.Magnitude(shortestPath);  // TO DO - Implement NavMesh + pathfinding around obstacles.
     }
 
 
-    Vector3 CirulariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
+    Vector3 CirculariseAccuracyBloom(Vector3 crosshair, Vector3 randomised)
      //Use TAN trigonometric function to calculate a circle around crosshair with radius of accuracyRadius, and re-target any shots which would fall outside that circle.
     {
         float adjacent = Vector3.Magnitude(crosshair);
